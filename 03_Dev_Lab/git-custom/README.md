@@ -13,15 +13,19 @@
 
   <br/>
 
+  <br/>
+
+  ### 📊 GitHub Analytics
+
   <a href="https://github.com/Bsanath27">
-    <img src="https://github-readme-stats.vercel.app/api?username=Bsanath27&show_icons=true&theme=tokyonight&hide_border=true" height="160" alt="stats graph" />
+    <img src="https://github-readme-stats-sigma-five.vercel.app/api?username=Bsanath27&show_icons=true&theme=tokyonight&hide_border=true" height="160" alt="stats graph" />
     <img src="https://streak-stats.demolab.com?user=Bsanath27&theme=tokyonight&hide_border=true" height="160" alt="streak graph" />
   </a>
 
   <br/>
 
   <a href="https://github.com/Bsanath27">
-    <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=Bsanath27&layout=compact&theme=tokyonight&hide_border=true" height="160" alt="top languages" />
+    <img src="https://github-readme-stats-sigma-five.vercel.app/api/top-langs/?username=Bsanath27&layout=compact&theme=tokyonight&hide_border=true" height="160" alt="top languages" />
   </a>
 
   <br/>
