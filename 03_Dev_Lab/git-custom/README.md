@@ -13,19 +13,10 @@
 
   <br/>
 
-  <br/>
-
-  ### 📊 GitHub Analytics
+  ### Contributions Last Year
 
   <a href="https://github.com/Bsanath27">
-    <img src="https://github-readme-stats-sigma-five.vercel.app/api?username=Bsanath27&show_icons=true&theme=tokyonight&hide_border=true" height="160" alt="stats graph" />
-    <img src="https://streak-stats.demolab.com?user=Bsanath27&theme=tokyonight&hide_border=true" height="160" alt="streak graph" />
-  </a>
-
-  <br/>
-
-  <a href="https://github.com/Bsanath27">
-    <img src="https://github-readme-stats-sigma-five.vercel.app/api/top-langs/?username=Bsanath27&layout=compact&theme=tokyonight&hide_border=true" height="160" alt="top languages" />
+    <img src="https://ghchart.rshah.org/0e75b6/Bsanath27" alt="Sanath's Github Chart" />
   </a>
 
   <br/>
@@ -35,7 +26,7 @@
 
   <br/>
 
-  ### 🛠 Tech Stack
+  ### Tech Stack
 
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python Badge"/>
   <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch Badge"/>
@@ -50,7 +41,7 @@
 
   <br/>
 
-  ### 🚀 Featured Projects
+  ### Featured Projects
 
 </div>
 
