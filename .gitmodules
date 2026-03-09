@@ -1,0 +1,6 @@
+[submodule "03_Dev_Lab/websites/framere tutorial 1/muontickets"]
+	path = 03_Dev_Lab/websites/framere tutorial 1/muontickets
+	url = https://github.com/muonium-ai/muontickets.git
+[submodule "03_Dev_Lab/tts-projects/tamil-tts/tickets/mt/muontickets"]
+	path = 03_Dev_Lab/tts-projects/tamil-tts/tickets/mt/muontickets
+	url = https://github.com/muonium-ai/MuonTickets.git

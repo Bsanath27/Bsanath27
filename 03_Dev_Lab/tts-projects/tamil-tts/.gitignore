@@ -1,0 +1,20 @@
+# Data & Models
+data/
+dataset/
+training/
+15epoch-samples/
+30epoch-samples/
+samples/
+samples_tested/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Logs
+*.log
+
+# System
+.DS_Store
