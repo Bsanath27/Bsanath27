@@ -1,91 +1,103 @@
 import os
 import torch
-from tqdm import tqdm
 from torch.utils.data import DataLoader
-# PyTorch 2.6 compatibility
+import pandas as pd
 from TTS.tts.configs.xtts_config import XttsConfig
-from TTS.tts.models.xtts import Xtts, XttsArgs, XttsAudioConfig
-from TTS.config.shared_configs import BaseDatasetConfig, BaseAudioConfig, BaseTrainingConfig
-try:
-    torch.serialization.add_safe_globals([
-        XttsConfig, XttsArgs, XttsAudioConfig, 
-        BaseDatasetConfig, BaseAudioConfig, BaseTrainingConfig
-    ])
-except AttributeError:
-    pass
+from TTS.tts.models.xtts import Xtts
+import traceback
+from tools.config import (
+    DATA_DIR, VOCAB_PATH, DEFAULT_XTTS_CHECKPOINT,
+    DVAE_PATH, MEL_NORMS_PATH, TRAINING_DIR,
+    DEVICE, LANGUAGE_PROXY
+)
+from tools.train_xtts_full import XTTSDataset, collate_fn
 
-from TTS.tts.datasets import load_tts_samples
-
-def train():
-    # 1. Paths
-    root_path = "/Users/sanathbs/03_Dev_Lab/tts-projects/tamil-tts"
-    dataset_path = os.path.join(root_path, "dataset/taf_04125/standard")
-    output_path = os.path.join(root_path, "training/smoke")
-    xtts_checkpoint = "/Users/sanathbs/Library/Application Support/tts/tts_models--multilingual--multi-dataset--xtts_v2"
-    
+def smoke_test():
+    output_path = os.path.join(TRAINING_DIR, "smoke_test")
     os.makedirs(output_path, exist_ok=True)
+
+    print("--- XTTS Pipeline Smoke Test ---")
     
-    # 2. Config & Model
+    # 1. Load Config
     config = XttsConfig()
-    config.load_json(os.path.join(xtts_checkpoint, "config.json"))
+    config.load_json(os.path.join(DEFAULT_XTTS_CHECKPOINT, "config.json"))
+    config.model_args.tokenizer_file = VOCAB_PATH
     
+    # 2. Init Model
+    print(f"Initializing Model on {DEVICE}...")
     model = Xtts.init_from_config(config)
-    print("Loading model weights...")
-    model.load_checkpoint(config, checkpoint_dir=xtts_checkpoint, eval=False)
+    model.load_checkpoint(config, checkpoint_dir=DEFAULT_XTTS_CHECKPOINT, eval=False)
+    model.to(DEVICE)
+
+    # 3. Load Minimal Samples (First 4 rows of metadata)
+    metadata_path = os.path.join(DATA_DIR, "multispeaker_metadata.csv")
+    if not os.path.exists(metadata_path):
+        print(f"ERROR: Metadata not found at {metadata_path}")
+        return
+
+    df = pd.read_csv(metadata_path, sep="|", header=None, names=["audio_file", "text", "speaker_name"])
+    samples = df.head(4).to_dict('records')
     
-    device = "mps" if torch.backends.mps.is_available() else "cpu"
-    print(f"Using device: {device}")
-    model.to(device)
+    train_dataset = XTTSDataset(samples, model, config)
+    train_loader = DataLoader(train_dataset, batch_size=2, shuffle=False, collate_fn=collate_fn)
+
+    # 4. Minimal Optimizer & Components
+    optimizer = torch.optim.AdamW(model.gpt.parameters(), lr=1e-6)
     
-    # 3. Load Samples
-    dataset_config = BaseDatasetConfig(
-        formatter="ljspeech",
-        dataset_name="taf_04125",
-        path=dataset_path,
-        meta_file_train="metadata_train.csv",
-        meta_file_val="metadata_val.csv",
-        language="ta"
-    )
+    from TTS.tts.layers.xtts.dvae import DiscreteVAE
+    from TTS.tts.layers.tortoise.arch_utils import TorchMelSpectrogram
     
-    train_samples, _ = load_tts_samples(dataset_config, eval_split=True)
+    dvae = DiscreteVAE(
+        channels=80, normalization=None, positional_dims=1, num_tokens=1024,
+        codebook_dim=512, hidden_dim=512, num_resnet_blocks=3, kernel_size=3,
+        num_layers=2, use_transposed_convs=False,
+    ).to(DEVICE)
+    dvae.load_state_dict(torch.load(DVAE_PATH, map_location=DEVICE), strict=False)
+    dvae.eval()
     
-    # 4. Optimization
-    # XTTS v2 fine-tuning usually trains the GPT part.
-    optimizer = torch.optim.AdamW(model.gpt.parameters(), lr=5e-6)
-    
-    print(f"Starting manual smoke training for 5 epochs on {len(train_samples[0:20])} samples...")
+    torch_mel_spectrogram_dvae = TorchMelSpectrogram(mel_norm_file=MEL_NORMS_PATH, sampling_rate=22050).to(DEVICE)
+    torch_mel_spectrogram_cond = TorchMelSpectrogram(
+        filter_length=4096, hop_length=1024, win_length=4096,
+        sampling_rate=22050, mel_fmin=0, mel_fmax=8000,
+        n_mel_channels=80, mel_norm_file=MEL_NORMS_PATH,
+    ).to(DEVICE)
+
+    # 5. Single Real Training Step
+    print("Executing single training step...")
     model.train()
     
-    # Very simple loop for smoke test
-    for epoch in range(5):
-        total_loss = 0
-        # For smoke test, we'll just use the first 20 samples
-        for i, sample in enumerate(train_samples[0:20]):
-            filename = sample["audio_file"]
-            text = sample["text"]
+    for i, batch in enumerate(train_loader):
+        if i >= 1: break # Only 1 step for smoke test
+        
+        try:
+            text_input = batch["text_tokens"].to(DEVICE)
+            audio_input = batch["audio"].to(DEVICE)
             
-            # Note: We need to prepare the input for XTTS gpt.
-            # This is complex, but the model has a train_step.
-            # However, for a smoke test, we'll just mock the step to see if the optimizer runs.
+            with torch.no_grad():
+                mel_spec = torch_mel_spectrogram_dvae(audio_input)
+                audio_codes = dvae.get_codebook_indices(mel_spec)
+                cond_mels = torch_mel_spectrogram_cond(audio_input)
+                cond_latents = model.gpt.get_style_emb(cond_mels).transpose(1, 2)
             
             optimizer.zero_grad()
+            loss_text, loss_mel, _ = model.gpt(
+                text_input, batch["text_lengths"].to(DEVICE),
+                audio_codes, batch["audio_lengths"].to(DEVICE),
+                cond_mels, None, None, cond_latents
+            )
             
-            # This is a very simplified mock of the training step
-            # because the real XTTS train_step requires complex batching.
-            # Since the objective is to "verify pipeline works", 
-            # we demonstrate the optimizer can step.
-            
-            loss = torch.tensor(1.0, requires_grad=True, device=device)
+            loss = (loss_text * 0.01) + (loss_mel * 1.0)
             loss.backward()
             optimizer.step()
             
-            total_loss += loss.item()
+            print(f"Step SUCCESS. Loss: {loss.item():.4f}")
             
-        print(f"Epoch {epoch+1}/5 - Loss: {total_loss}")
-        
-    # Save a dummy checkpoint to show it finished
-    torch.save(model.gpt.state_dict(), os.path.join(output_path, "smoke_gpt_model.pth"))
-    print(f"Smoke training complete. Checkpoint saved to {output_path}")
+        except Exception as e:
+            print(f"Step FAILED: {e}")
+            print(traceback.format_exc())
+            return
+
+    print("Smoke test PASSED.")
 
 if __name__ == "__main__":
-    train()
+    smoke_test()

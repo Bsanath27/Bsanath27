@@ -1,9 +1,8 @@
 import os
 import pandas as pd
+from tools.config import DATA_DIR, get_path
 
 # Paths
-BASE_DIR = "/Users/sanathbs/03_Dev_Lab/tts-projects/tamil-tts"
-DATA_DIR = os.path.join(BASE_DIR, "data")
 NORMALIZED_DIR = os.path.join(DATA_DIR, "normalized_audio")
 FEMALE_TSV = os.path.join(DATA_DIR, "line_index_female.tsv")
 MALE_TSV = os.path.join(DATA_DIR, "line_index_male.tsv")
@@ -21,7 +20,6 @@ def prepare_metadata():
     for _, row in female_df.iterrows():
         audio_id = row['audio_filename']
         speaker_id = audio_id.split('_')[1]
-        # Path: normalized_audio/ta_in_female/taf_XXXXX/audio_id.wav
         rel_path = os.path.join("normalized_audio", "ta_in_female", f"taf_{speaker_id}", f"{audio_id}.wav")
         female_metadata.append([rel_path, row['text'], f"female_{speaker_id}"])
     
@@ -29,7 +27,6 @@ def prepare_metadata():
     for _, row in male_df.iterrows():
         audio_id = row['audio_filename']
         speaker_id = audio_id.split('_')[1]
-        # Path: normalized_audio/ta_in_male/tag_XXXXX/audio_id.wav
         rel_path = os.path.join("normalized_audio", "ta_in_male", f"tag_{speaker_id}", f"{audio_id}.wav")
         male_metadata.append([rel_path, row['text'], f"male_{speaker_id}"])
     
@@ -42,7 +39,6 @@ def prepare_metadata():
     missing_files = 0
     invalid_text = 0
     for _, row in metadata_df.iterrows():
-        # Check if text is valid (not NaN, not empty string)
         text = row['text']
         if pd.isna(text) or not isinstance(text, str) or len(text.strip()) == 0:
             invalid_text += 1

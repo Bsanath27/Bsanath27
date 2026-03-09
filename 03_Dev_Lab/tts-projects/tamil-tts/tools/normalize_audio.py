@@ -1,14 +1,9 @@
 import os
 import subprocess
 from pathlib import Path
+from tools.config import DATA_DIR
 
 def normalize_speaker_audio(input_dir, output_dir, target_sr=22050):
-    """
-    Normalizes audio files for TTS:
-    - Target sample rate: 22050 Hz (or argument)
-    - Target channels: Mono (1)
-    - Target bit depth: 16-bit
-    """
     in_path = Path(input_dir)
     out_base_path = Path(output_dir)
 
@@ -18,7 +13,6 @@ def normalize_speaker_audio(input_dir, output_dir, target_sr=22050):
 
     out_base_path.mkdir(parents=True, exist_ok=True)
 
-    # find all speaker subdirectories
     for speaker_dir in in_path.iterdir():
         if speaker_dir.is_dir():
             speaker_out_dir = out_base_path / speaker_dir.name
@@ -30,11 +24,6 @@ def normalize_speaker_audio(input_dir, output_dir, target_sr=22050):
             for wav_file in speaker_dir.glob("*.wav"):
                 out_file = speaker_out_dir / wav_file.name
                 
-                # ffmpeg command to normalize
-                # -ar 22050 : set sample rate
-                # -ac 1 : set strictly to mono
-                # -c:a pcm_s16le : set exactly to 16 bit PCM WAV
-                # -y : overwrite if exists
                 cmd = [
                     "ffmpeg", "-y", "-loglevel", "error",
                     "-i", str(wav_file),
@@ -54,6 +43,6 @@ def normalize_speaker_audio(input_dir, output_dir, target_sr=22050):
 
 if __name__ == "__main__":
     print("Starting audio normalization for TTS...")
-    normalize_speaker_audio("data/ta_in_female_unzipped", "data/normalized_audio/ta_in_female")
-    normalize_speaker_audio("data/ta_in_male_unzipped", "data/normalized_audio/ta_in_male")
+    normalize_speaker_audio(os.path.join(DATA_DIR, "ta_in_female_unzipped"), os.path.join(DATA_DIR, "normalized_audio/ta_in_female"))
+    normalize_speaker_audio(os.path.join(DATA_DIR, "ta_in_male_unzipped"), os.path.join(DATA_DIR, "normalized_audio/ta_in_male"))
     print("Done normalization.")
