@@ -1,0 +1,12 @@
+{
+  "name": "skyrik-root",
+  "private": true,
+  "scripts": {
+    "start": "cd skyrik-react && npx expo start --tunnel",
+    "lan": "cd skyrik-react && npx expo start",
+    "start:clear": "cd skyrik-react && npx expo start --clear",
+    "android": "cd skyrik-react && npx expo start --android",
+    "ios": "cd skyrik-react && npx expo start --ios",
+    "web": "cd skyrik-react && npx expo start --web"
+  }
+}

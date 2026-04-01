@@ -1,0 +1,5 @@
+# Python Data Engineering Pipeline Requirements
+# Used for parsing and sanitizing global helipad location data
+
+pandas>=2.0.0
+kagglehub>=0.3.3

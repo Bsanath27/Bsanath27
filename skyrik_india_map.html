@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<!--
+  SKYRIK India GIS Map — Helipads + Pincode Boundaries
+  =====================================================
+  Serve this file from the gis-projects/ root directory:
+    python3 -m http.server 8000
+    open http://localhost:8000/skyrik_india_map.html
+
+  Android WebView Integration:
+    Option A (recommended): Embed a local HTTP server (e.g., NanoHTTPD) in your
+      Android app and load: webView.loadUrl("http://localhost:8000/skyrik_india_map.html")
+    Option B: Set in your Activity/Fragment:
+      webView.settings.allowUniversalAccessFromFileURLs = true
+      webView.settings.allowFileAccessFromFileURLs = true
+      (Required because fetch() to sibling file:// paths is blocked by default)
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Skyrik · India GIS</title>
+
+<!-- Leaflet 1.9.4 -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- MarkerCluster 1.5.3 -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+
+<style>
+/* ── RESET & TOKENS ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:    #080E1A;
+  --bg2:   #0D1525;
+  --bg3:   #111C30;
+  --bg4:   #162035;
+  --gold:  #C9A84C;
+  --gold-dim: rgba(201,168,76,0.18);
+  --accent: #4A9EF5;
+  --success: #3ECBA0;
+  --warn:  #F0A050;
+  --danger: #F06060;
+  --text:  #E8E4D4;
+  --text2: rgba(232,228,212,0.65);
+  --text3: rgba(232,228,212,0.35);
+  --border:  rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.16);
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', 'Courier New', monospace;
+  --topbar-h: 52px;
+  --sidebar-w: 300px;
+  --info-w: 340px;
+  --radius: 8px;
+  --radius-sm: 5px;
+}
+
+html, body {
+  height: 100%; overflow: hidden;
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── TOPBAR ───────────────────────────────────────────────────── */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  height: var(--topbar-h);
+  background: rgba(8,14,26,0.96);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border2);
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 14px;
+}
+
+.logo {
+  font-family: var(--mono); font-size: 13px; font-weight: 500;
+  letter-spacing: 0.12em; color: var(--gold);
+  white-space: nowrap; flex-shrink: 0;
+}
+.logo span { color: var(--text3); }
+
+/* Search */
+.search-wrap {
+  position: relative; flex: 1; min-width: 0; max-width: 340px;
+}
+#searchInput {
+  width: 100%; height: 34px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius); color: var(--text);
+  font-family: var(--sans); font-size: 13px;
+  padding: 0 12px 0 34px;
+  outline: none; transition: border-color 0.2s;
+}
+#searchInput:focus { border-color: var(--gold); }
+#searchInput::placeholder { color: var(--text3); }
+.search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--text3); font-size: 14px; pointer-events: none;
+}
+#searchResults {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 2000;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius); overflow: hidden; display: none;
+  max-height: 320px; overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.sr-item {
+  padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.sr-item:last-child { border-bottom: none; }
+.sr-item:hover { background: var(--bg4); }
+.sr-name { font-size: 13px; font-weight: 500; }
+.sr-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.sr-empty { padding: 12px 14px; font-size: 13px; color: var(--text3); }
+.sr-hl { color: var(--gold); font-weight: 600; }
+
+/* Stats pill */
+#topStats {
+  font-size: 11px; font-family: var(--mono); color: var(--text3);
+  white-space: nowrap; flex-shrink: 0;
+}
+#topStats b { color: var(--text2); }
+
+/* Tile buttons */
+.tile-btns {
+  display: flex; gap: 4px; flex-shrink: 0;
+}
+.tile-btn {
+  height: 30px; padding: 0 11px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); color: var(--text3);
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  cursor: pointer; transition: all 0.18s; letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.tile-btn:hover { border-color: var(--border2); color: var(--text2); background: var(--bg4); }
+.tile-btn.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+/* Sidebar toggle */
+#menuBtn {
+  width: 34px; height: 34px; flex-shrink: 0;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); color: var(--text3);
+  font-size: 16px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  transition: all 0.18s;
+}
+#menuBtn:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── MAIN LAYOUT ──────────────────────────────────────────────── */
+#main {
+  position: fixed;
+  top: var(--topbar-h); bottom: 0; left: 0; right: 0;
+  display: flex; overflow: hidden;
+}
+
+/* ── SIDEBAR ──────────────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
+  transition: width 0.22s ease, opacity 0.22s ease;
+  scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
+}
+#sidebar.collapsed { width: 0; opacity: 0; pointer-events: none; }
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.sb-section {
+  padding: 16px; border-bottom: 1px solid var(--border);
+}
+.sb-label {
+  font-size: 10px; font-family: var(--mono); font-weight: 500;
+  letter-spacing: 0.14em; color: var(--gold);
+  text-transform: uppercase; margin-bottom: 12px;
+}
+.sb-sublabel {
+  font-size: 11px; color: var(--text3); margin-bottom: 8px; margin-top: 10px;
+}
+
+/* Type chips */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  height: 26px; padding: 0 10px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 100px; font-size: 11px; font-weight: 500;
+  cursor: pointer; display: flex; align-items: center; gap: 5px;
+  transition: all 0.18s; color: var(--text3); white-space: nowrap;
+}
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.chip:hover { color: var(--text2); border-color: var(--border2); }
+.chip.active { color: var(--text); border-color: currentColor; background: transparent; }
+.chip.active[data-type="Commercial/Civil"]    { color: #4A9EF5; background: rgba(74,158,245,0.12); }
+.chip.active[data-type="Government/Defence"] { color: #C9A84C; background: rgba(201,168,76,0.12); }
+.chip.active[data-type="Hospital/Medical"]   { color: #F06060; background: rgba(240,96,96,0.12); }
+.chip.active[data-type="Tourist/Pilgrimage"] { color: #3ECBA0; background: rgba(62,203,160,0.12); }
+.chip.active[data-type="Offshore/Industrial"]{ color: #F0A050; background: rgba(240,160,80,0.12); }
+
+/* Radio pills */
+.radio-group { display: flex; gap: 5px; flex-wrap: wrap; }
+.radio-pill {
+  height: 26px; padding: 0 12px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 100px; font-size: 11px; font-weight: 500;
+  cursor: pointer; color: var(--text3); transition: all 0.18s;
+}
+.radio-pill:hover { color: var(--text2); }
+.radio-pill.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+/* Select */
+.sb-select {
+  width: 100%; height: 32px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); color: var(--text2);
+  font-family: var(--sans); font-size: 12px;
+  padding: 0 10px; outline: none; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.sb-select:focus { border-color: var(--gold); }
+.sb-select option { background: var(--bg3); color: var(--text); }
+
+/* Toggle switch */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 0;
+}
+.toggle-label { font-size: 12px; color: var(--text2); }
+.toggle {
+  width: 36px; height: 20px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 100px; cursor: pointer; position: relative;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.toggle::after {
+  content: ''; position: absolute;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--text3); top: 2px; left: 2px;
+  transition: all 0.2s;
+}
+.toggle.on { background: rgba(201,168,76,0.25); border-color: var(--gold); }
+.toggle.on::after { background: var(--gold); transform: translateX(16px); }
+
+/* Load button */
+.load-btn {
+  height: 30px; padding: 0 14px;
+  background: var(--gold-dim); border: 1px solid var(--gold);
+  border-radius: var(--radius-sm); color: var(--gold);
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.18s; white-space: nowrap;
+  flex-shrink: 0;
+}
+.load-btn:hover { background: rgba(201,168,76,0.28); }
+.load-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Load row */
+.load-row { display: flex; gap: 8px; margin-top: 10px; }
+.load-row .sb-select { flex: 1; }
+
+/* Loaded states list */
+#loadedStatesList { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+.loaded-state-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 6px 10px;
+}
+.loaded-state-name { font-size: 12px; color: var(--text2); }
+.loaded-state-count { font-size: 11px; font-family: var(--mono); color: var(--text3); margin-right: 6px; }
+.loaded-state-remove {
+  color: var(--text3); cursor: pointer; font-size: 16px; line-height: 1;
+  padding: 0 2px; transition: color 0.15s;
+}
+.loaded-state-remove:hover { color: var(--danger); }
+
+/* District legend in sidebar */
+#districtLegend {
+  margin-top: 10px; display: flex; flex-direction: column; gap: 4px;
+  max-height: 200px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
+}
+.dl-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--text2);
+}
+.dl-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 10px;
+}
+.stat-val { font-size: 22px; font-family: var(--mono); color: var(--gold); font-weight: 500; }
+.stat-key { font-size: 10px; color: var(--text3); margin-top: 2px; letter-spacing: 0.04em; }
+
+/* ── MAP WRAP ─────────────────────────────────────────────────── */
+#mapWrap {
+  flex: 1; position: relative; overflow: hidden; min-width: 0;
+}
+#map { width: 100%; height: 100%; }
+
+/* Loading overlay */
+#loadingOverlay {
+  position: absolute; inset: 0; z-index: 800;
+  background: rgba(8,14,26,0.72); backdrop-filter: blur(4px);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center; gap: 14px;
+}
+#loadingOverlay.show { display: flex; }
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(201,168,76,0.18);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loadingText { font-size: 13px; color: var(--text2); font-family: var(--mono); }
+
+/* Zoom hint */
+#zoomHint {
+  position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+  z-index: 500; background: rgba(8,14,26,0.82);
+  border: 1px solid var(--border2); border-radius: 100px;
+  padding: 6px 16px; font-size: 11px; color: var(--text3);
+  pointer-events: none; transition: opacity 0.3s; opacity: 0;
+  white-space: nowrap;
+}
+#zoomHint.show { opacity: 1; }
+
+/* ── INFO PANEL ───────────────────────────────────────────────── */
+#infoPanel {
+  width: var(--info-w); flex-shrink: 0;
+  background: var(--bg2); border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+  transition: width 0.22s ease, opacity 0.22s ease;
+  width: 0; opacity: 0; pointer-events: none;
+}
+#infoPanel.open {
+  width: var(--info-w); opacity: 1; pointer-events: auto;
+}
+
+.ip-header {
+  padding: 16px; border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;
+}
+.ip-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+#ipType { font-size: 10px; font-family: var(--mono); letter-spacing: 0.12em; text-transform: uppercase; }
+#ipName { font-size: 16px; font-weight: 600; color: var(--text); line-height: 1.3; }
+#ipClose {
+  width: 28px; height: 28px; flex-shrink: 0;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); color: var(--text3);
+  font-size: 18px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  transition: all 0.15s; margin-top: -2px;
+}
+#ipClose:hover { color: var(--danger); border-color: var(--danger); }
+
+.ip-body {
+  flex: 1; overflow-y: auto; padding: 14px 16px;
+  scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
+}
+
+.ip-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+.ip-pill {
+  padding: 3px 10px; border-radius: 100px; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.ip-pill.g { background: rgba(62,203,160,0.15); color: #3ECBA0; border: 1px solid rgba(62,203,160,0.35); }
+.ip-pill.a { background: rgba(240,160,80,0.15); color: #F0A050; border: 1px solid rgba(240,160,80,0.35); }
+.ip-pill.r { background: rgba(240,96,96,0.15);  color: #F06060; border: 1px solid rgba(240,96,96,0.35); }
+.ip-pill.b { background: rgba(74,158,245,0.15); color: #4A9EF5; border: 1px solid rgba(74,158,245,0.35); }
+.ip-pill.d { background: rgba(255,255,255,0.06); color: var(--text3); border: 1px solid var(--border2); }
+
+.ip-row {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+.ip-row:last-of-type { border-bottom: none; }
+.ip-key { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+.ip-val { font-size: 12px; color: var(--text2); text-align: right; word-break: break-all; }
+.ip-val.mono { font-family: var(--mono); font-size: 11px; color: var(--gold); }
+
+.ip-divider { height: 1px; background: var(--border); margin: 14px 0; }
+.ip-pincode-hero {
+  font-size: 40px; font-family: var(--mono); font-weight: 500;
+  color: var(--gold); text-align: center; padding: 16px 0;
+  letter-spacing: 0.08em;
+}
+
+.ip-link {
+  display: block; padding: 9px 14px; margin-top: 8px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius-sm); color: var(--text2);
+  font-size: 12px; text-decoration: none;
+  transition: all 0.18s; text-align: center;
+}
+.ip-link:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── LEAFLET OVERRIDES ────────────────────────────────────────── */
+.leaflet-control-zoom {
+  border: 1px solid var(--border2) !important;
+  border-radius: var(--radius) !important;
+  overflow: hidden;
+}
+.leaflet-control-zoom a {
+  background: rgba(8,14,26,0.9) !important;
+  color: var(--text3) !important;
+  border-color: var(--border2) !important;
+  font-size: 16px !important; line-height: 26px !important;
+  width: 28px !important; height: 28px !important;
+}
+.leaflet-control-zoom a:hover {
+  background: var(--bg3) !important; color: var(--gold) !important;
+}
+.leaflet-control-attribution {
+  background: rgba(8,14,26,0.75) !important; color: var(--text3) !important; font-size: 9px !important;
+}
+.leaflet-control-attribution a { color: var(--text3) !important; }
+.leaflet-popup-content-wrapper {
+  background: var(--bg3) !important; color: var(--text) !important;
+  border: 1px solid var(--border2) !important;
+  border-radius: var(--radius) !important; box-shadow: 0 6px 24px rgba(0,0,0,0.5) !important;
+}
+.leaflet-popup-tip { background: var(--bg3) !important; }
+
+/* Helipad marker */
+.h-pin {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; font-family: var(--mono);
+  border: 2px solid; color: #050C1A;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.3);
+  cursor: pointer; transition: transform 0.15s;
+  position: relative; flex-shrink: 0;
+}
+.h-pin:hover { transform: scale(1.35) !important; }
+.h-dots {
+  position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 2px;
+}
+.h-dots span { width: 4px; height: 4px; border-radius: 50%; display: block; }
+
+/* Cluster */
+.cluster-pin {
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-weight: 700; color: #050C1A;
+  border: 2px solid rgba(201,168,76,0.5);
+}
+.cluster-sm { width: 34px; height: 34px; font-size: 11px; background: rgba(201,168,76,0.55); }
+.cluster-md { width: 40px; height: 40px; font-size: 12px; background: rgba(201,168,76,0.70); }
+.cluster-lg { width: 48px; height: 48px; font-size: 13px; background: rgba(201,168,76,0.88); }
+
+/* Map legends */
+.map-legend {
+  position: absolute; z-index: 400; bottom: 30px; left: 12px;
+  background: rgba(8,14,26,0.88); backdrop-filter: blur(8px);
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  padding: 12px; min-width: 170px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.legend-title {
+  font-size: 9px; font-family: var(--mono); letter-spacing: 0.12em;
+  color: var(--gold); text-transform: uppercase; margin-bottom: 8px;
+}
+.legend-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 2.5px 0; font-size: 11px; color: var(--text2);
+}
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.legend-ring { width: 10px; height: 10px; border-radius: 50%; border: 2px solid; flex-shrink: 0; }
+.legend-divider { height: 1px; background: var(--border); margin: 6px 0; }
+
+/* Grayscale satellite filter */
+.leaflet-grayscale-pane { filter: grayscale(100%) brightness(0.82) contrast(1.08); }
+
+/* ── TOAST ────────────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(10px);
+  z-index: 9999; background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 10px 20px;
+  font-size: 12px; color: var(--text2); white-space: nowrap;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── MOBILE ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 100%; --info-w: 100%; }
+
+  #sidebar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    width: 100% !important; height: 65vh; z-index: 900;
+    border-radius: 16px 16px 0 0; border-right: none;
+    border-top: 1px solid var(--border2);
+    transform: translateY(100%); opacity: 1; pointer-events: none;
+    transition: transform 0.28s ease;
+  }
+  #sidebar.collapsed { transform: translateY(100%); pointer-events: none; }
+  #sidebar:not(.collapsed) { transform: translateY(0); pointer-events: auto; }
+
+  #infoPanel {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    width: 100% !important; height: 55vh; z-index: 901;
+    border-radius: 16px 16px 0 0; border-left: none;
+    border-top: 1px solid var(--border2);
+    transform: translateY(100%); opacity: 1;
+    transition: transform 0.28s ease;
+  }
+  #infoPanel.open { transform: translateY(0); width: 100% !important; }
+
+  .tile-btns { display: none; }
+  #topStats { display: none; }
+}
+
+@media (max-width: 480px) {
+  .logo span { display: none; }
+  #searchInput { font-size: 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="logo">SKYRIK <span>· India GIS</span></div>
+
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input id="searchInput" type="text" placeholder="Search helipads, ICAO, state…" autocomplete="off" />
+    <div id="searchResults"></div>
+  </div>
+
+  <div id="topStats"><b id="statH">—</b> helipads &nbsp;·&nbsp; <b id="statS">0</b> states</div>
+
+  <div class="tile-btns">
+    <button class="tile-btn" data-tile="satellite" onclick="setTile('satellite')">Satellite</button>
+    <button class="tile-btn" data-tile="grayscale" onclick="setTile('grayscale')">Sat B&amp;W</button>
+    <button class="tile-btn" data-tile="hybrid"    onclick="setTile('hybrid')">Hybrid</button>
+    <button class="tile-btn" data-tile="roads"     onclick="setTile('roads')">Road</button>
+    <button class="tile-btn active" data-tile="dark" onclick="setTile('dark')">Dark</button>
+  </div>
+
+  <button id="menuBtn" onclick="toggleSidebar()" title="Filters &amp; Layers">☰</button>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+
+    <!-- HELIPAD FILTERS -->
+    <div class="sb-section">
+      <div class="sb-label">Helipad Filters</div>
+
+      <div class="sb-sublabel">Type</div>
+      <div class="chips" id="typeChips">
+        <div class="chip active" data-type="Commercial/Civil"     onclick="toggleType(this)"><span class="dot" style="background:#4A9EF5"></span>Commercial</div>
+        <div class="chip active" data-type="Government/Defence"   onclick="toggleType(this)"><span class="dot" style="background:#C9A84C"></span>Government</div>
+        <div class="chip active" data-type="Hospital/Medical"     onclick="toggleType(this)"><span class="dot" style="background:#F06060"></span>Hospital</div>
+        <div class="chip active" data-type="Tourist/Pilgrimage"   onclick="toggleType(this)"><span class="dot" style="background:#3ECBA0"></span>Tourist</div>
+        <div class="chip active" data-type="Offshore/Industrial"  onclick="toggleType(this)"><span class="dot" style="background:#F0A050"></span>Offshore</div>
+      </div>
+
+      <div class="sb-sublabel">DGCA Status</div>
+      <div class="radio-group">
+        <div class="radio-pill active" data-dgca="" onclick="setDgca(this, '')">All</div>
+        <div class="radio-pill" data-dgca="Licensed"   onclick="setDgca(this, 'Licensed')">Licensed</div>
+        <div class="radio-pill" data-dgca="Unlicensed" onclick="setDgca(this, 'Unlicensed')">Unlicensed</div>
+        <div class="radio-pill" data-dgca="Under Review" onclick="setDgca(this, 'Under Review')">Review</div>
+      </div>
+
+      <div class="sb-sublabel">State</div>
+      <select id="helipadsStateSelect" class="sb-select" onchange="setStateFilter(this.value)">
+        <option value="">All States</option>
+      </select>
+
+      <div class="sb-sublabel">Amenities (AND)</div>
+      <div class="toggle-row">
+        <span class="toggle-label">Emergency capable</span>
+        <div class="toggle" id="togEmergency" onclick="toggleAmenity('emergency')"></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Fuel available</span>
+        <div class="toggle" id="togFuel" onclick="toggleAmenity('fuel')"></div>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">Lighting</span>
+        <div class="toggle" id="togLighting" onclick="toggleAmenity('lighting')"></div>
+      </div>
+    </div>
+
+    <!-- PINCODE BOUNDARIES -->
+    <div class="sb-section">
+      <div class="sb-label">Pincode Boundaries</div>
+
+      <div class="toggle-row">
+        <span class="toggle-label">Show boundaries</span>
+        <div class="toggle on" id="togPincodes" onclick="togglePincodeVisibility()"></div>
+      </div>
+
+      <div class="load-row" style="margin-top:12px">
+        <select id="pincodeStateSelect" class="sb-select">
+          <option value="">Select state to load…</option>
+        </select>
+        <button class="load-btn" onclick="onLoadState()">Load</button>
+      </div>
+      <div id="loadedStatesList"></div>
+
+      <div id="districtLegendWrap" style="display:none">
+        <div class="sb-sublabel" id="districtLegendTitle"></div>
+        <div id="districtLegend"></div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="sb-section">
+      <div class="sb-label">Statistics</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val" id="sbStatH">—</div>
+          <div class="stat-key">Helipads visible</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="sbStatS">0</div>
+          <div class="stat-key">States loaded</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="sbStatTotal">2,550</div>
+          <div class="stat-key">Total helipads</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val">22</div>
+          <div class="stat-key">States available</div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAP -->
+  <div id="mapWrap">
+    <div id="map"></div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay">
+      <div class="spinner"></div>
+      <div id="loadingText">Loading…</div>
+    </div>
+
+    <!-- Helipad legend -->
+    <div class="map-legend" id="helipadsLegend">
+      <div class="legend-title">Helipad Type</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#4A9EF5"></span>Commercial / Civil</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#C9A84C"></span>Government / Defence</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#F06060"></span>Hospital / Medical</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#3ECBA0"></span>Tourist / Pilgrimage</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#F0A050"></span>Offshore / Industrial</div>
+      <div class="legend-divider"></div>
+      <div class="legend-row"><span class="legend-ring" style="border-color:rgba(255,255,255,0.85)"></span>DGCA Licensed</div>
+      <div class="legend-row"><span class="legend-ring" style="border-color:rgba(255,255,255,0.22)"></span>Unlicensed / Review</div>
+    </div>
+
+    <!-- Zoom hint -->
+    <div id="zoomHint">Zoom in to see individual helipads</div>
+  </div>
+
+  <!-- INFO PANEL -->
+  <div id="infoPanel">
+    <div class="ip-header">
+      <div class="ip-header-row">
+        <div id="ipType"></div>
+        <button id="ipClose" onclick="closeInfoPanel()">×</button>
+      </div>
+      <div id="ipName"></div>
+    </div>
+    <div class="ip-body" id="ipBody"></div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════════════════════ */
+const TYPE_COLORS = {
+  'Commercial/Civil':    '#4A9EF5',
+  'Government/Defence':  '#C9A84C',
+  'Hospital/Medical':    '#F06060',
+  'Tourist/Pilgrimage':  '#3ECBA0',
+  'Offshore/Industrial': '#F0A050',
+};
+
+const PINCODE_STATES = {
+  'Andhra Pradesh':    'andhra-pradesh',
+  'Arunachal Pradesh': 'arunachal-pradesh',
+  'Assam':             'assam',
+  'Bihar':             'bihar',
+  'Chhattisgarh':      'chhattisgarh',
+  'Haryana':           'haryana',
+  'Himachal Pradesh':  'himachal-pradesh',
+  'Jammu & Kashmir':   'jammu-and-kashmir',
+  'Jharkhand':         'jharkhand',
+  'Karnataka':         'karnataka',
+  'Kerala':            'kerala',
+  'Maharashtra':       'maharashtra',
+  'Manipur':           'manipur',
+  'Meghalaya':         'meghalaya',
+  'Mizoram':           'mizoram',
+  'Nagaland':          'nagaland',
+  'Tamil Nadu':        'tamil-nadu',
+  'Telangana':         'telangana',
+  'Tripura':           'tripura',
+  'Uttar Pradesh':     'uttar-pradesh',
+  'Uttarakhand':       'uttarakhand',
+  'West Bengal':       'west-bengal',
+};
+
+// Approximate sizes (MB) for user warning before loading large files
+const STATE_SIZES = {
+  'West Bengal': 23, 'Maharashtra': 20, 'Karnataka': 19,
+  'Uttar Pradesh': 17, 'Kerala': 9.7, 'Tamil Nadu': 10,
+  'Bihar': 11, 'Jharkhand': 6.2,
+};
+
+const PINCODE_BASE = '/tn-pincodes/data_raw/India-Pincode-Boundary-Data/State Wise Separated/';
+
+const DISTRICT_PALETTE = [
+  '#4A9EF5','#3ECBA0','#F0A050','#F06060','#C9A84C','#9B59B6','#1ABC9C',
+  '#E67E22','#E74C3C','#3498DB','#2ECC71','#F39C12','#8E44AD','#16A085',
+  '#D35400','#27AE60','#2980B9','#C0392B','#6C5CE7','#00B894','#FD79A8',
+  '#74B9FF','#A29BFE','#55EFC4','#FDCB6E','#E17055','#81ECEC','#FAB1A0',
+  '#00CEC9','#6D214F','#182C61','#1B1464','#0A3D62','#B71540','#079992',
+  '#60A3BC','#E55039','#F0932B','#6AB04C','#C44569','#22A6B3','#BE2EDD',
+  '#30336B','#F9CA24','#7BED9F','#70A1FF','#FF6B81','#ECCC68','#636E72',
+  '#00B894','#00CEC9','#0984E3','#6C5CE7','#FDCB6E','#E17055','#D63031',
+  '#E84393','#74B9FF','#A29BFE','#55EFC4','#81ECEC','#FAB1A0','#B2BEC3',
+  '#4A9EF5','#3ECBA0','#F0A050','#F06060','#C9A84C','#9B59B6','#1ABC9C',
+  '#E67E22','#E74C3C','#3498DB','#2ECC71','#F39C12','#8E44AD',
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════ */
+let HELIPADS = [];
+const filters = {
+  types: new Set(Object.keys(TYPE_COLORS)),
+  dgca: '',
+  state: '',
+  emergency: false,
+  fuel: false,
+  lighting: false,
+};
+let pincodeVisible = true;
+const pincodeCache  = new Map(); // stateName -> { geojson, colorMap }
+const pincodeLayers = new Map(); // stateName -> L.GeoJSON
+const lruOrder = [];             // for LRU eviction (max 5 states)
+const MAX_STATES = 5;
+
+let currentTile = 'dark';
+let helipadsMarkerMap = new Map(); // id -> L.Marker
+
+/* ═══════════════════════════════════════════════════════════════
+   MAP INIT
+═══════════════════════════════════════════════════════════════ */
+const map = L.map('map', {
+  center: [22.5, 82.0],
+  zoom: 5,
+  zoomControl: true,
+  preferCanvas: true,
+  zoomSnap: 0.5,
+  wheelDebounceTime: 60,
+});
+
+// Custom panes
+map.createPane('pincodePane');
+map.getPane('pincodePane').style.zIndex = 220;
+map.getPane('pincodePane').style.pointerEvents = 'auto';
+
+// Create a dedicated pane for the grayscale tile so CSS filter doesn't affect markers
+map.createPane('grayscalePane');
+map.getPane('grayscalePane').style.zIndex = 200;
+map.getPane('grayscalePane').classList.add('leaflet-grayscale-pane');
+
+const TILES = {
+  satellite: L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { attribution: 'Tiles &copy; Esri, Maxar, GeoEye, USGS', maxZoom: 19, maxNativeZoom: 19 }
+  ),
+  grayscale: L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { attribution: 'Tiles &copy; Esri', maxZoom: 19, maxNativeZoom: 19, pane: 'grayscalePane' }
+  ),
+  hybrid: L.layerGroup([
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 20, maxNativeZoom: 19, attribution: 'Tiles &copy; Esri' }),
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png',
+      { maxZoom: 20, subdomains: 'abcd', opacity: 0.92, attribution: '&copy; CARTO' }),
+  ]),
+  roads: L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    { attribution: '&copy; OSM &copy; CARTO', maxZoom: 20, subdomains: 'abcd' }
+  ),
+  dark: L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    { attribution: '&copy; OSM &copy; CARTO', maxZoom: 20, subdomains: 'abcd' }
+  ),
+};
+TILES.dark.addTo(map);
+
+// MarkerCluster
+const clusterGroup = L.markerClusterGroup({
+  chunkedLoading: true,
+  chunkInterval: 120,
+  chunkDelay: 50,
+  maxClusterRadius: 52,
+  showCoverageOnHover: false,
+  zoomToBoundsOnClick: true,
+  disableClusteringAtZoom: 14,
+  iconCreateFunction(cluster) {
+    const n = cluster.getChildCount();
+    const sz = n > 500 ? 'lg' : n > 80 ? 'md' : 'sm';
+    return L.divIcon({
+      html: `<div class="cluster-pin cluster-${sz}">${n}</div>`,
+      className: '', iconSize: [48, 48], iconAnchor: [24, 24],
+    });
+  },
+});
+clusterGroup.addTo(map);
+
+/* ═══════════════════════════════════════════════════════════════
+   TILE SWITCHER
+═══════════════════════════════════════════════════════════════ */
+function setTile(key) {
+  // Remove current tile(s)
+  if (currentTile === 'hybrid') {
+    TILES.hybrid.eachLayer(l => map.removeLayer(l));
+  } else if (TILES[currentTile] && map.hasLayer(TILES[currentTile])) {
+    map.removeLayer(TILES[currentTile]);
+  }
+  // Add new tile(s)
+  if (key === 'hybrid') {
+    TILES.hybrid.eachLayer(l => l.addTo(map));
+  } else if (TILES[key]) {
+    TILES[key].addTo(map);
+  }
+  currentTile = key;
+  document.querySelectorAll('.tile-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tile === key));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HELIPAD MARKERS
+═══════════════════════════════════════════════════════════════ */
+function makeHelipadsIcon(h) {
+  const col  = TYPE_COLORS[h.type] || '#888';
+  const ring = h.dgca_status === 'Licensed' ? 'rgba(255,255,255,0.88)' : 'rgba(255,255,255,0.22)';
+  const dots = [
+    h.emergency ? `<span style="background:#F06060"></span>` : '',
+    h.fuel      ? `<span style="background:#F0A050"></span>` : '',
+    h.lighting  ? `<span style="background:#4A9EF5"></span>` : '',
+  ].join('');
+  return L.divIcon({
+    className: '',
+    html: `<div class="h-pin" style="background:${col};border-color:${ring}">H<div class="h-dots">${dots}</div></div>`,
+    iconSize: [26, 26], iconAnchor: [13, 13], popupAnchor: [0, -17],
+  });
+}
+
+function applyHelipadsFilter() {
+  const visible = HELIPADS.filter(h => {
+    if (!filters.types.has(h.type))                           return false;
+    if (filters.dgca && h.dgca_status !== filters.dgca)       return false;
+    if (filters.state && h.state !== filters.state)           return false;
+    if (filters.emergency && !h.emergency)                    return false;
+    if (filters.fuel      && !h.fuel)                         return false;
+    if (filters.lighting  && !h.lighting)                     return false;
+    return true;
+  });
+
+  clusterGroup.clearLayers();
+  helipadsMarkerMap.clear();
+  visible.forEach(h => {
+    const m = L.marker([h.lat, h.lon], { icon: makeHelipadsIcon(h) });
+    m.on('click', () => openInfoPanel('helipad', h));
+    clusterGroup.addLayer(m);
+    helipadsMarkerMap.set(h.id, m);
+  });
+
+  updateStats(visible.length);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FILTER HANDLERS
+═══════════════════════════════════════════════════════════════ */
+function toggleType(el) {
+  const t = el.dataset.type;
+  if (filters.types.has(t)) { filters.types.delete(t); el.classList.remove('active'); }
+  else                       { filters.types.add(t);    el.classList.add('active');    }
+  applyHelipadsFilter();
+}
+
+function setDgca(el, val) {
+  filters.dgca = val;
+  document.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  applyHelipadsFilter();
+}
+
+function setStateFilter(val) {
+  filters.state = val;
+  applyHelipadsFilter();
+}
+
+function toggleAmenity(key) {
+  filters[key] = !filters[key];
+  const el = document.getElementById('tog' + key.charAt(0).toUpperCase() + key.slice(1));
+  el.classList.toggle('on', filters[key]);
+  applyHelipadsFilter();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PINCODE LAZY LOADING
+═══════════════════════════════════════════════════════════════ */
+async function onLoadState() {
+  const sel = document.getElementById('pincodeStateSelect');
+  const name = sel.value;
+  if (!name) { showToast('Select a state first'); return; }
+  if (pincodeLayers.has(name)) { showToast(`${name} already loaded`); return; }
+
+  const sizeMB = STATE_SIZES[name];
+  if (sizeMB && sizeMB > 15) {
+    if (!confirm(`${name} boundary file is ~${sizeMB} MB. Loading may take a moment on slower devices. Continue?`)) return;
+  }
+
+  await loadPincodeState(name);
+  sel.value = '';
+}
+
+async function loadPincodeState(stateName) {
+  const slug = PINCODE_STATES[stateName];
+  if (!slug) { showToast(`No boundary data for ${stateName}`); return; }
+
+  showLoading(`Loading ${stateName} pincodes…`);
+  try {
+    const url = `${PINCODE_BASE}${slug}.geojson`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const geojson = await resp.json();
+
+    // Build district→color map
+    const districts = [...new Set(
+      geojson.features.map(f => (f.properties.district || 'Unknown').split(',')[0].trim())
+    )].sort();
+    const colorMap = {};
+    districts.forEach((d, i) => { colorMap[d] = DISTRICT_PALETTE[i % DISTRICT_PALETTE.length]; });
+
+    pincodeCache.set(stateName, { geojson, colorMap });
+
+    const layer = buildPincodeLayer(stateName, geojson, colorMap);
+    pincodeLayers.set(stateName, layer);
+    if (pincodeVisible) layer.addTo(map);
+
+    // LRU tracking
+    lruOrder.push(stateName);
+    if (lruOrder.length > MAX_STATES) {
+      const oldest = lruOrder.shift();
+      if (oldest !== stateName) {
+        unloadPincodeState(oldest, true);
+        showToast(`Removed ${oldest} to free memory`);
+      }
+    }
+
+    renderLoadedStatesList();
+    renderDistrictLegend(stateName, colorMap);
+    updateStats();
+    showToast(`${stateName}: ${geojson.features.length} pincodes loaded`);
+
+  } catch (err) {
+    showToast(`Failed to load ${stateName}: ${err.message}`);
+    console.error('Pincode load error:', err);
+  } finally {
+    hideLoading();
+  }
+}
+
+function buildPincodeLayer(stateName, geojson, colorMap) {
+  return L.geoJSON(geojson, {
+    pane: 'pincodePane',
+    smoothFactor: 1.5,
+    style(feature) {
+      const d = (feature.properties.district || 'Unknown').split(',')[0].trim();
+      const col = colorMap[d] || '#888';
+      return { fillColor: col, fillOpacity: 0.17, color: col, weight: 0.85, opacity: 0.65 };
+    },
+    onEachFeature(feature, layer) {
+      const p = feature.properties;
+      layer.on({
+        mouseover(e) { e.target.setStyle({ fillOpacity: 0.38, weight: 1.8 }); e.target.bringToFront(); },
+        mouseout(e)  { e.target.setStyle({ fillOpacity: 0.17, weight: 0.85 }); },
+        click(e) {
+          const d = (p.district || 'Unknown').split(',')[0].trim();
+          openInfoPanel('pincode', p, colorMap[d] || '#4A9EF5');
+          L.DomEvent.stopPropagation(e);
+        },
+      });
+    },
+  });
+}
+
+function unloadPincodeState(stateName, fromCache = false) {
+  const layer = pincodeLayers.get(stateName);
+  if (layer) { if (map.hasLayer(layer)) map.removeLayer(layer); pincodeLayers.delete(stateName); }
+  if (fromCache) { pincodeCache.delete(stateName); }
+  const idx = lruOrder.indexOf(stateName);
+  if (idx > -1) lruOrder.splice(idx, 1);
+  renderLoadedStatesList();
+  updateStats();
+}
+
+function togglePincodeVisibility() {
+  pincodeVisible = !pincodeVisible;
+  document.getElementById('togPincodes').classList.toggle('on', pincodeVisible);
+  pincodeLayers.forEach((layer, name) => {
+    if (pincodeVisible) { if (!map.hasLayer(layer)) layer.addTo(map); }
+    else                { if (map.hasLayer(layer))  map.removeLayer(layer); }
+  });
+}
+
+function renderLoadedStatesList() {
+  const container = document.getElementById('loadedStatesList');
+  if (pincodeLayers.size === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = [...pincodeLayers.keys()].map(name => {
+    const cached = pincodeCache.get(name);
+    const count  = cached ? cached.geojson.features.length : '';
+    return `<div class="loaded-state-item">
+      <span class="loaded-state-name">${name}</span>
+      <span class="loaded-state-count">${count ? count.toLocaleString() : ''}</span>
+      <span class="loaded-state-remove" onclick="unloadPincodeState('${name}')">×</span>
+    </div>`;
+  }).join('');
+}
+
+function renderDistrictLegend(stateName, colorMap) {
+  const wrap  = document.getElementById('districtLegendWrap');
+  const title = document.getElementById('districtLegendTitle');
+  const list  = document.getElementById('districtLegend');
+  wrap.style.display = 'block';
+  title.textContent = `${stateName} Districts`;
+  const entries = Object.entries(colorMap);
+  const shown   = entries.slice(0, 25);
+  list.innerHTML = shown.map(([d, col]) =>
+    `<div class="dl-item"><span class="dl-swatch" style="background:${col}"></span>${d}</div>`
+  ).join('');
+  if (entries.length > 25) {
+    list.innerHTML += `<div class="dl-item" style="color:var(--text3)">+ ${entries.length - 25} more districts</div>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INFO PANEL
+═══════════════════════════════════════════════════════════════ */
+function openInfoPanel(type, data, accentColor) {
+  const panel  = document.getElementById('infoPanel');
+  const ipType = document.getElementById('ipType');
+  const ipName = document.getElementById('ipName');
+  const ipBody = document.getElementById('ipBody');
+
+  if (type === 'helipad') {
+    const h   = data;
+    const col = TYPE_COLORS[h.type] || '#888';
+    ipType.textContent = h.type;
+    ipType.style.color = col;
+    ipName.textContent = h.name;
+
+    const statusPill = h.dgca_status === 'Licensed'
+      ? `<span class="ip-pill g">DGCA Licensed</span>`
+      : h.dgca_status === 'Under Review'
+        ? `<span class="ip-pill a">Under Review</span>`
+        : `<span class="ip-pill d">Unlicensed</span>`;
+
+    const amenPills = [
+      h.emergency ? `<span class="ip-pill r">Emergency</span>` : '',
+      h.fuel      ? `<span class="ip-pill a">Fuel</span>`      : '',
+      h.lighting  ? `<span class="ip-pill b">Lighting</span>`  : '',
+      h.verified  ? `<span class="ip-pill g">Verified</span>`  : '',
+    ].filter(Boolean).join('');
+
+    ipBody.innerHTML = `
+      <div class="ip-pills">${statusPill}${amenPills}</div>
+      ${ipRow('State',       h.state)}
+      ${h.city ? ipRow('City', h.city) : ''}
+      ${ipRow('Coordinates', `${h.lat.toFixed(5)}, ${h.lon.toFixed(5)}`, true)}
+      ${h.elevation_m != null ? ipRow('Elevation', `${h.elevation_m} m MSL`) : ''}
+      ${h.icao     ? ipRow('ICAO',      h.icao,     true) : ''}
+      ${h.dgca_ref ? ipRow('DGCA Ref',  h.dgca_ref, true) : ''}
+      ${h.surface  ? ipRow('Surface',   h.surface)        : ''}
+      ${h.operator ? ipRow('Operator',  h.operator)       : ''}
+      ${ipRow('Confidence', `${h.confidence} / 100`)}
+      ${h.source ? ipRow('Source', h.source) : ''}
+      <div class="ip-divider"></div>
+      <a class="ip-link" href="https://www.google.com/maps?q=${h.lat},${h.lon}&t=k&z=19" target="_blank">↗ Open in Google Satellite</a>
+      <a class="ip-link" href="https://maps.apple.com/?ll=${h.lat},${h.lon}&z=17&t=k" target="_blank">↗ Open in Apple Maps</a>
+    `;
+    map.flyTo([h.lat, h.lon], Math.max(map.getZoom(), 14), { duration: 0.8, easeLinearity: 0.5 });
+
+  } else if (type === 'pincode') {
+    const p   = data;
+    const col = accentColor || '#4A9EF5';
+    ipType.textContent = 'Pincode Boundary';
+    ipType.style.color = col;
+    ipName.textContent = p.pincode || '—';
+    ipBody.innerHTML = `
+      <div class="ip-pincode-hero">${p.pincode || '—'}</div>
+      ${p.officename ? ipRow('Post Office', p.officename) : ''}
+      ${p.officetype ? ipRow('Office Type', p.officetype === 'S.O' ? 'Sub Office' : p.officetype === 'H.O' ? 'Head Office' : p.officetype) : ''}
+      ${p.district   ? ipRow('District',   p.district)   : ''}
+      ${p.state      ? ipRow('State',      p.state)      : ''}
+    `;
+  }
+
+  panel.classList.add('open');
+}
+
+function closeInfoPanel() {
+  document.getElementById('infoPanel').classList.remove('open');
+}
+
+function ipRow(key, val, mono = false) {
+  return `<div class="ip-row">
+    <div class="ip-key">${key}</div>
+    <div class="ip-val${mono ? ' mono' : ''}">${val || '—'}</div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SEARCH
+═══════════════════════════════════════════════════════════════ */
+const searchInput   = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (q.length < 2) { searchResults.style.display = 'none'; return; }
+  const hits = HELIPADS.filter(h =>
+    h.name.toLowerCase().includes(q) ||
+    (h.city   && h.city.toLowerCase().includes(q))  ||
+    (h.state  && h.state.toLowerCase().includes(q)) ||
+    (h.type   && h.type.toLowerCase().includes(q))  ||
+    (h.icao   && h.icao.toLowerCase().includes(q))  ||
+    (h.dgca_ref && h.dgca_ref.toLowerCase().includes(q))
+  ).slice(0, 12);
+
+  if (!hits.length) {
+    searchResults.innerHTML = `<div class="sr-empty">No results for "${escHtml(q)}"</div>`;
+  } else {
+    searchResults.innerHTML = hits.map(h => `
+      <div class="sr-item" onclick="jumpToHelipad(${h.id})">
+        <div class="sr-name">${hlText(h.name, q)}</div>
+        <div class="sr-sub">${escHtml(h.city || '')}${h.city ? ' · ' : ''}${escHtml(h.state)} · <span style="color:${TYPE_COLORS[h.type]}">${escHtml(h.type)}</span></div>
+      </div>`).join('');
+  }
+  searchResults.style.display = 'block';
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) searchResults.style.display = 'none';
+});
+
+function jumpToHelipad(id) {
+  const h = HELIPADS.find(x => x.id === id);
+  if (!h) return;
+  searchResults.style.display = 'none';
+  searchInput.value = h.name;
+  openInfoPanel('helipad', h);
+}
+
+function hlText(text, q) {
+  const safe = escHtml(text);
+  const re   = new RegExp(`(${escRegex(q)})`, 'gi');
+  return safe.replace(re, `<span class="sr-hl">$1</span>`);
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR TOGGLE
+═══════════════════════════════════════════════════════════════ */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════════════════════════ */
+function updateStats(visibleCount) {
+  const h = visibleCount !== undefined ? visibleCount : null;
+  const s = pincodeLayers.size;
+  if (h !== null) {
+    const fmt = h.toLocaleString();
+    document.getElementById('statH').textContent    = fmt;
+    document.getElementById('sbStatH').textContent  = fmt;
+  }
+  document.getElementById('statS').textContent   = s;
+  document.getElementById('sbStatS').textContent  = s;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════════════════════════════════ */
+let toastTimer;
+function showToast(msg, dur = 3200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), dur);
+}
+function showLoading(txt) {
+  document.getElementById('loadingText').textContent = txt;
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
+
+/* ═══════════════════════════════════════════════════════════════
+   ZOOM HINT
+═══════════════════════════════════════════════════════════════ */
+let zoomHintTimer;
+map.on('zoom', () => {
+  const hint = document.getElementById('zoomHint');
+  if (map.getZoom() < 8) {
+    hint.classList.add('show');
+    clearTimeout(zoomHintTimer);
+    zoomHintTimer = setTimeout(() => hint.classList.remove('show'), 2200);
+  } else {
+    hint.classList.remove('show');
+  }
+});
+
+/* Map click closes info panel */
+map.on('click', () => closeInfoPanel());
+
+/* ═══════════════════════════════════════════════════════════════
+   POPULATE PINCODE STATE SELECTOR
+═══════════════════════════════════════════════════════════════ */
+function populatePincodeSelector() {
+  const sel = document.getElementById('pincodeStateSelect');
+  Object.keys(PINCODE_STATES).sort().forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    const mb = STATE_SIZES[name];
+    opt.textContent = mb && mb > 10 ? `${name} (~${mb}MB)` : name;
+    sel.appendChild(opt);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOAD HELIPADS + BOOTSTRAP
+═══════════════════════════════════════════════════════════════ */
+async function init() {
+  showLoading('Loading 2,550 helipads…');
+  try {
+    const resp = await fetch('/helipads/skyrik_helipads_india_20260321_1656.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    HELIPADS = await resp.json();
+
+    // Populate helipad state filter
+    const states = [...new Set(HELIPADS.map(h => h.state).filter(Boolean))].sort();
+    const stateSel = document.getElementById('helipadsStateSelect');
+    states.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      stateSel.appendChild(opt);
+    });
+
+    populatePincodeSelector();
+    applyHelipadsFilter();
+
+  } catch (err) {
+    showToast(`Error loading helipads: ${err.message}`);
+    console.error(err);
+  } finally {
+    hideLoading();
+  }
+}
+
+init();
+</script>
+</body>
+</html>

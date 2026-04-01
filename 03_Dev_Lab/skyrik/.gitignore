@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# IDE / System
+.DS_Store
+*.swp
+*.log
+.vscode/
+
+# Environment / Secret
+.env
+.env.local
+.env.*.local
+
+# Project Specific (EXCLUDE)
+magic-mcp/
+Skyrik-exports/
+
+# Android / iOS build artifacts
+*.apk
+*.ipa
+*.app
+android/
+ios/
