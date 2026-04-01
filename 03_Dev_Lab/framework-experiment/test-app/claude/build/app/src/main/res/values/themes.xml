@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Skyrik's Compose theme is applied programmatically via SkyrikTheme.
+        This XML theme is the minimal shell required by the Activity window.
+        It uses a transparent/dark window background so the Compose surface
+        controls all rendering without a flash of the wrong background color.
+    -->
+    <style name="Theme.Skyrik" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
