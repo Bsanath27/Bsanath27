@@ -1,0 +1,11 @@
+# Public Assets Directory
+
+Place static assets here that should be copied to the build output without processing:
+
+- Favicon files
+- Robot.txt
+- Manifest files
+- Static images
+- GeoJSON data files (for development)
+
+These files will be available at the root of your application.

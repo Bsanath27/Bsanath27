@@ -1,0 +1,27 @@
+{
+  "name": "3d-terrain-map",
+  "version": "0.1.0",
+  "description": "3D terrain visualization with satellite imagery and pincode boundaries using Cesium.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "cesium": "^1.114.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.11",
+    "vite-plugin-cesium": "^1.2.22"
+  },
+  "keywords": [
+    "cesium",
+    "3d",
+    "terrain",
+    "satellite",
+    "geospatial"
+  ],
+  "author": "",
+  "license": "Apache-2.0"
+}
