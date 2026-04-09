@@ -52,15 +52,165 @@
       color: #999;
       margin-top: 8px;
     }
+
+    .controls-panel {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      max-width: 280px;
+      z-index: 1000;
+    }
+
+    .controls-panel h2 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .control-group {
+      margin-bottom: 15px;
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .control-group select,
+    .control-group input[type="range"] {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      background: white;
+    }
+
+    .control-group input[type="range"] {
+      padding: 0;
+    }
+
+    .control-group .value-display {
+      display: inline-block;
+      margin-left: 8px;
+      font-weight: 600;
+      color: #2196F3;
+    }
+
+    .control-group button {
+      width: 100%;
+      padding: 8px 12px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .control-group button:hover {
+      background: #1976D2;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e0e0e0;
+      margin: 12px 0;
+    }
   </style>
 </head>
 <body>
   <div class="info-panel">
     <h1>🌍 3D Terrain Map</h1>
     <p>Interactive 3D globe with terrain rendering powered by Cesium.js</p>
-    <div class="version">v0.1.0</div>
+    <div class="version">v0.1.0 - Terrain Pipeline Configured</div>
   </div>
+  
+  <div class="controls-panel">
+    <h2>⛰️ Terrain Controls</h2>
+    
+    <div class="control-group">
+      <label>Terrain Exaggeration <span class="value-display" id="exaggerationValue">1.0x</span></label>
+      <input type="range" id="exaggerationSlider" min="0.5" max="5.0" step="0.1" value="1.0">
+    </div>
+    
+    <div class="divider"></div>
+    
+    <div class="control-group">
+      <label>Quick Locations</label>
+      <select id="locationSelector">
+        <option value="">Select a location...</option>
+        <option value="himalayas">🏔️ Himalayas</option>
+        <option value="westernGhats">🌄 Western Ghats</option>
+        <option value="easternGhats">⛰️ Eastern Ghats</option>
+        <option value="deccanPlateau">🏞️ Deccan Plateau</option>
+        <option value="gangesPlain">🌾 Gangetic Plain</option>
+      </select>
+    </div>
+    
+    <div class="control-group">
+      <button id="goButton">📍 Fly To Location</button>
+    </div>
+  </div>
+  
   <div id="cesiumContainer"></div>
   <script type="module" src="/src/main.js"></script>
+  
+  <script>
+    // Wire up terrain controls after viewer initializes
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const exaggerationSlider = document.getElementById('exaggerationSlider');
+        const exaggerationValue = document.getElementById('exaggerationValue');
+        const locationSelector = document.getElementById('locationSelector');
+        const goButton = document.getElementById('goButton');
+        
+        // Terrain exaggeration control
+        exaggerationSlider.addEventListener('input', (e) => {
+          const value = parseFloat(e.target.value);
+          exaggerationValue.textContent = value.toFixed(1) + 'x';
+          if (window.setExaggeration) {
+            window.setExaggeration(value);
+          }
+        });
+        
+        // Location selector
+        goButton.addEventListener('click', () => {
+          const location = locationSelector.value;
+          if (!location) {
+            alert('Please select a location first');
+            return;
+          }
+          
+          const flyFunctions = {
+            'himalayas': window.flyToHimalayas,
+            'westernGhats': window.flyToWesternGhats,
+            'easternGhats': window.flyToEasternGhats,
+            'deccanPlateau': window.flyToDeccanPlateau,
+            'gangesPlain': window.flyToGangesPlain
+          };
+          
+          if (flyFunctions[location]) {
+            flyFunctions[location]();
+          }
+        });
+        
+        // Allow Enter key on location selector
+        locationSelector.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            goButton.click();
+          }
+        });
+      }, 1000);
+    });
+  </script>
 </body>
 </html>
