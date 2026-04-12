@@ -1,20 +1,16 @@
 ---
 title:  how do i cut my own hair mid part men
-type: source
+type: topic
 domain: ai-ml
 created: 2026-04-12
 updated: 2026-04-12
-tags: [ai-ml, source]
+tags: [ai-ml, topic]
 ---
 
-## Source Info
-- **Title**:  how do i cut my own hair mid part men
-- **Type**: Article/Paper/Note
-- **Domain**: ai-ml
-- **Accessed**: 2026-04-12
+## Definition
+ how do i cut my own hair mid part men is...
 
-## Content
-
+## Overview
 # Summary: how do i cut my own hair mid part men
 
 ## Metadata
@@ -54,5 +50,14 @@ Saved for reference on DIY hair maintenance for a specific style (mid-part/curta
 - **Tag for Synthesis**: No
 - **Archive**: Yes
 
-## Archive
-- Original: raw/archive/2026-04-12-personal-hair-cutting-resources.md
+## Key Entities
+- [[../entities/]]
+
+## Related Frameworks
+- [[../frameworks/]]
+
+## Related Topics
+- [[../topics/]]
+
+## Sources
+- [[../sources/]]

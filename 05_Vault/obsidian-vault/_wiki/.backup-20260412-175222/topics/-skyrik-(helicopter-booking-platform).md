@@ -80,4 +80,11 @@ tags: [real-time-systems, topic]
   - **Code location**: `skyrik-kotlin/.../data/sync/OfflineBookingQueue.kt`
   - **Ports to**: CRM tools, task trackers, or any "field" application.
 
+## Related Topics
+- [[../topics/]]
+
+## Related Frameworks
+- [[../frameworks/]]
+
 ## Sources
+- [[../sources/]]

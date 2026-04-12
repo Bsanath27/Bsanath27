@@ -277,10 +277,5 @@ More results
 
 ](https://www.google.com/search?q=how+do+i+cut+my+own+hair+mid+part+men&client=safari&hs=rP1U&sca_esv=7e962d5130765b0b&rls=en&channel=41&udm=7&biw=1470&bih=871&sxsrf=ANbL-n44k3cVGMlE8PJLcNxYLiOsOBpRtg:1775908696640&ei=WDfaaZbfJsCVseMPnJ68mAc&start=10&sa=N)
 
-## Related
-- [[../topics/]] — Related topics
-- [[../entities/]] — People, companies, products
-- [[../frameworks/]] — Patterns and methodologies
-
 ## Archive
 - Original: raw/archive/how do i cut my own hair mid part men.md

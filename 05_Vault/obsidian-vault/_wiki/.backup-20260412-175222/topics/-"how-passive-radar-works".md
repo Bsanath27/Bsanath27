@@ -1,20 +1,16 @@
 ---
 title:  "How Passive Radar Works"
-type: source
+type: topic
 domain: ai-ml
 created: 2026-04-12
 updated: 2026-04-12
-tags: [ai-ml, source]
+tags: [ai-ml, topic]
 ---
 
-## Source Info
-- **Title**:  "How Passive Radar Works"
-- **Type**: Article/Paper/Note
-- **Domain**: ai-ml
-- **Accessed**: 2026-04-12
+## Definition
+ "How Passive Radar Works" is...
 
-## Content
-
+## Overview
 ---
 title: "How Passive Radar Works"
 source: "https://www.passiveradar.com/how-passive-radar-works/"
@@ -135,5 +131,14 @@ In a dense urban or suburban environment, there are often dozens of FM stations,
 
 Ulimately, the reason there is increasing interest in passive radar is because it is *accessible*. No broadcast license, transmitter, and newly inexpensive hardware makes radar available to consumers and businesses in a way that wouldn't be possible only a few years ago.
 
-## Archive
-- Original: raw/archive/How Passive Radar Works.md
+## Key Entities
+- [[../entities/]]
+
+## Related Frameworks
+- [[../frameworks/]]
+
+## Related Topics
+- [[../topics/]]
+
+## Sources
+- [[../sources/]]

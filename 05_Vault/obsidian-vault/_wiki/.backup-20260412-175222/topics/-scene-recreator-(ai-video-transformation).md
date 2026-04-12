@@ -1,20 +1,16 @@
 ---
 title:  Scene Recreator (AI video transformation)
-type: source
+type: topic
 domain: ai-ml
 created: 2026-04-12
 updated: 2026-04-12
-tags: [ai-ml, source]
+tags: [ai-ml, topic]
 ---
 
-## Source Info
-- **Title**:  Scene Recreator (AI video transformation)
-- **Type**: Article/Paper/Note
-- **Domain**: ai-ml
-- **Accessed**: 2026-04-12
+## Definition
+ Scene Recreator (AI video transformation) is...
 
-## Content
-
+## Overview
 # Insights from: Scene Recreator (AI video transformation)
 ## Date: 2026-04-12
 
@@ -80,5 +76,11 @@ tags: [ai-ml, source]
   - **Code location**: `frontend/src/services/identityClustering.ts`
   - **Ports to**: Security software, photo organizers, or character-driven AI pipelines.
 
-## Archive
-- Original: raw/archive/scene-recreator-insights-2026-04-12.md
+## Related Topics
+- [[../topics/]]
+
+## Related Frameworks
+- [[../frameworks/]]
+
+## Sources
+- [[../sources/]]

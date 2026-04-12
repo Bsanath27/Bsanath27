@@ -1,16 +1,20 @@
 ---
 title:  "how do i cut my own hair mid part men"
-type: topic
+type: source
 domain: ai-ml
 created: 2026-04-12
 updated: 2026-04-12
-tags: [ai-ml, topic]
+tags: [ai-ml, source]
 ---
 
-## Definition
- "how do i cut my own hair mid part men" is...
+## Source Info
+- **Title**:  "how do i cut my own hair mid part men"
+- **Type**: Article/Paper/Note
+- **Domain**: ai-ml
+- **Accessed**: 2026-04-12
 
-## Overview
+## Content
+
 ---
 title: "how do i cut my own hair mid part men"
 source: "https://www.google.com/search?q=how+do+i+cut+my+own+hair+mid+part+men&client=safari&hs=C5L&sca_esv=7e962d5130765b0b&rls=en&channel=41&udm=7&biw=1470&bih=871&sxsrf=ANbL-n4L-KCHXibd-lMmJCEIgTyB6YBb8g%3A1775908652295&ei=LDfaae3MEeDgseMP3e7ioAc&ved=0ahUKEwjtkv6i3-WTAxVgcGwGHV23GHQQ4dUDCBE&uact=5&oq=how+do+i+cut+my+own+hair+mid+part+men&gs_lp=EhZnd3Mtd2l6LW1vZGVsZXNzLXZpZGVvIiVob3cgZG8gaSBjdXQgbXkgb3duIGhhaXIgbWlkIHBhcnQgbWVuSOoLUNoEWNoJcAF4AZABAJgBsAGgAc0EqgEDMC40uAEDyAEA-AEBmAIEoAKBBMICChAAGEcY1gQYsAPCAgYQABgWGB7CAgsQABiABBiKBRiGA8ICCBAAGIAEGKIEwgIFEAAY7wXCAgUQIRigAcICBBAhGBXCAgUQIRifBZgDAIgGAZAGCJIHAzEuM6AHjhiyBwMwLjO4B_kDwgcDMi00yAcWgAgB&sclient=gws-wiz-modeless-video#ip=1"
@@ -273,4 +277,10 @@ More results
 
 ](https://www.google.com/search?q=how+do+i+cut+my+own+hair+mid+part+men&client=safari&hs=rP1U&sca_esv=7e962d5130765b0b&rls=en&channel=41&udm=7&biw=1470&bih=871&sxsrf=ANbL-n44k3cVGMlE8PJLcNxYLiOsOBpRtg:1775908696640&ei=WDfaaZbfJsCVseMPnJ68mAc&start=10&sa=N)
 
-## Sources
+## Related
+- [[../topics/]] — Related topics
+- [[../entities/]] — People, companies, products
+- [[../frameworks/]] — Patterns and methodologies
+
+## Archive
+- Original: raw/archive/how do i cut my own hair mid part men.md

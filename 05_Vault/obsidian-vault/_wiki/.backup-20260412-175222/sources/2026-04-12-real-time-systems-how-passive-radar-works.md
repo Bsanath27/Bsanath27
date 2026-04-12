@@ -57,5 +57,10 @@ This article provides a foundational understanding of how passive radar can be b
 - **Tag for Synthesis**: Yes
 - **Archive**: Yes
 
+## Related
+- [[../topics/]] — Related topics
+- [[../entities/]] — People, companies, products
+- [[../frameworks/]] — Patterns and methodologies
+
 ## Archive
 - Original: raw/archive/2026-04-12-real-time-systems-how-passive-radar-works.md

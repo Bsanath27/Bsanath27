@@ -135,5 +135,10 @@ In a dense urban or suburban environment, there are often dozens of FM stations,
 
 Ulimately, the reason there is increasing interest in passive radar is because it is *accessible*. No broadcast license, transmitter, and newly inexpensive hardware makes radar available to consumers and businesses in a way that wouldn't be possible only a few years ago.
 
+## Related
+- [[../topics/]] — Related topics
+- [[../entities/]] — People, companies, products
+- [[../frameworks/]] — Patterns and methodologies
+
 ## Archive
 - Original: raw/archive/How Passive Radar Works.md

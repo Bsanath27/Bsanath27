@@ -50,14 +50,4 @@ Saved for reference on DIY hair maintenance for a specific style (mid-part/curta
 - **Tag for Synthesis**: No
 - **Archive**: Yes
 
-## Key Entities
-- [[../entities/]]
-
-## Related Frameworks
-- [[../frameworks/]]
-
-## Related Topics
-- [[../topics/]]
-
 ## Sources
-- [[../sources/]]

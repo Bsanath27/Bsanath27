@@ -80,5 +80,9 @@ tags: [ai-ml, source]
   - **Code location**: `frontend/src/services/identityClustering.ts`
   - **Ports to**: Security software, photo organizers, or character-driven AI pipelines.
 
+## Related
+- [[../topics/]] — Related topics
+- [[../frameworks/]] — Related frameworks
+
 ## Archive
 - Original: raw/archive/scene-recreator-insights-2026-04-12.md

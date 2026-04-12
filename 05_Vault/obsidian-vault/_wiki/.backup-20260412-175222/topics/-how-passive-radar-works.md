@@ -1,20 +1,16 @@
 ---
 title:  How Passive Radar Works
-type: source
+type: topic
 domain: real-time-systems
 created: 2026-04-12
 updated: 2026-04-12
-tags: [real-time-systems, source]
+tags: [real-time-systems, topic]
 ---
 
-## Source Info
-- **Title**:  How Passive Radar Works
-- **Type**: Article/Paper/Note
-- **Domain**: real-time-systems
-- **Accessed**: 2026-04-12
+## Definition
+ How Passive Radar Works is...
 
-## Content
-
+## Overview
 # Summary: How Passive Radar Works
 
 ## Metadata
@@ -57,5 +53,14 @@ This article provides a foundational understanding of how passive radar can be b
 - **Tag for Synthesis**: Yes
 - **Archive**: Yes
 
-## Archive
-- Original: raw/archive/2026-04-12-real-time-systems-how-passive-radar-works.md
+## Key Entities
+- [[../entities/]]
+
+## Related Frameworks
+- [[../frameworks/]]
+
+## Related Topics
+- [[../topics/]]
+
+## Sources
+- [[../sources/]]

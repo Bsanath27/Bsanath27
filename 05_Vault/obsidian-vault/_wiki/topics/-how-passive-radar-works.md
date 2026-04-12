@@ -53,14 +53,4 @@ This article provides a foundational understanding of how passive radar can be b
 - **Tag for Synthesis**: Yes
 - **Archive**: Yes
 
-## Key Entities
-- [[../entities/]]
-
-## Related Frameworks
-- [[../frameworks/]]
-
-## Related Topics
-- [[../topics/]]
-
 ## Sources
-- [[../sources/]]

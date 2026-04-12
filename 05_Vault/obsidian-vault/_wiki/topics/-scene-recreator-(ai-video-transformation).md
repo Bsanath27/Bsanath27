@@ -76,11 +76,4 @@ tags: [ai-ml, topic]
   - **Code location**: `frontend/src/services/identityClustering.ts`
   - **Ports to**: Security software, photo organizers, or character-driven AI pipelines.
 
-## Related Topics
-- [[../topics/]]
-
-## Related Frameworks
-- [[../frameworks/]]
-
 ## Sources
-- [[../sources/]]

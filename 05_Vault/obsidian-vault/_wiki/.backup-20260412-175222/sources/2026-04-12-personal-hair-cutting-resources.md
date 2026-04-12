@@ -54,5 +54,10 @@ Saved for reference on DIY hair maintenance for a specific style (mid-part/curta
 - **Tag for Synthesis**: No
 - **Archive**: Yes
 
+## Related
+- [[../topics/]] — Related topics
+- [[../entities/]] — People, companies, products
+- [[../frameworks/]] — Patterns and methodologies
+
 ## Archive
 - Original: raw/archive/2026-04-12-personal-hair-cutting-resources.md

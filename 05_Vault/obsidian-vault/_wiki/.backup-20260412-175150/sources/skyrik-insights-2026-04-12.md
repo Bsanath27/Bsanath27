@@ -1,16 +1,20 @@
 ---
 title:  Skyrik (helicopter booking platform)
-type: topic
+type: source
 domain: real-time-systems
 created: 2026-04-12
 updated: 2026-04-12
-tags: [real-time-systems, topic]
+tags: [real-time-systems, source]
 ---
 
-## Definition
- Skyrik (helicopter booking platform) is...
+## Source Info
+- **Title**:  Skyrik (helicopter booking platform)
+- **Type**: Article/Paper/Note
+- **Domain**: real-time-systems
+- **Accessed**: 2026-04-12
 
-## Overview
+## Content
+
 # Insights from: Skyrik (helicopter booking platform)
 ## Date: 2026-04-12
 
@@ -80,4 +84,9 @@ tags: [real-time-systems, topic]
   - **Code location**: `skyrik-kotlin/.../data/sync/OfflineBookingQueue.kt`
   - **Ports to**: CRM tools, task trackers, or any "field" application.
 
-## Sources
+## Related
+- [[../topics/]] — Related topics
+- [[../frameworks/]] — Related frameworks
+
+## Archive
+- Original: raw/archive/skyrik-insights-2026-04-12.md
