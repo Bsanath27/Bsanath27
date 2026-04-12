@@ -1,5 +1,6 @@
 # Ingest Journal
 
+| 2026-04-12 |  Scene Recreator (AI video transformation) | article | 3 | ai-ml | | integrated |
 | 2026-04-12 |  Skyrik (helicopter booking platform) | article | 3 | real-time-systems | | integrated |
 | 2026-04-12 |  "How Passive Radar Works" | article | 3 | ai-ml | | summarized |
 All sources ingested into the wiki are logged here. Provides a complete audit trail of what's been synthesized and when.
