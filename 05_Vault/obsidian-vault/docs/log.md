@@ -1,5 +1,6 @@
 # Ingest Journal
 
+| 2026-04-12 |  how do i cut my own hair mid part men | article | 3 | ai-ml | | integrated |
 | 2026-04-12 |  How Passive Radar Works | article | 3 | real-time-systems | | integrated |
 | 2026-04-12 |  "how do i cut my own hair mid part men" | article | 3 | ai-ml | | integrated |
 | 2026-04-12 |  "How Passive Radar Works" | article | 3 | ai-ml | | integrated |
