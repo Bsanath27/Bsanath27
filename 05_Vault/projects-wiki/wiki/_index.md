@@ -24,7 +24,7 @@ This wiki follows [Andrej Karpathy's LLM pattern](https://github.com/karpathy/LL
 ## Pages by Category
 
 ### Core Operations
-- [[sources-index.md]] — Maps raw sources to wiki pages they feed into
+- [[sources-index]] — Maps raw sources to wiki pages they feed into
 - [[_metrics]] — Learning velocity + building velocity dashboard
 - [[_log]] — Append-only changelog of all wiki updates
 

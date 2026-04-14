@@ -2,7 +2,7 @@
 
 **Summary**: OpenAI's competition to train the best language model that fits in 16MB and trains in under 10 minutes on 8×H100 GPUs, scored by bits-per-byte (BPB) on the FineWeb validation set. Reveals the frontier of parameter-constrained ML: quantization, architecture search, and compression as competitive disciplines.
 
-**Sources**: openai/parameter-golf GitHub, RunPod blog (2026-03-25), arXiv:2509.23106 (Muon quantization), leaderboard records analysis.
+**Sources**: [[raw/parameter-golf/roadmap|roadmap]], [[raw/parameter-golf/knowledge-required|knowledge-required]], [[raw/parameter-golf/techniques-analysis|techniques-analysis]], [[raw/parameter-golf/winning-techniques|winning-techniques]], openai/parameter-golf GitHub, RunPod blog (2026-03-25), arXiv:2509.23106
 
 **Last updated**: 2026-04-14
 
@@ -156,6 +156,15 @@ Non-record submissions (`records/track_non_record_16mb/`): lower bar, accept int
 ## Conclusion
 
 Parameter Golf is the cleanest benchmark for parameter-efficient language model research. It forces creativity at the intersection of quantization, architecture, and systems engineering. The SOTA at 1.1147 BPB was achieved through 11 stacked improvements over 7 days of community effort. The remaining open frontier — binary quantization at 10-minute scale, long context eval, JEPA-style training — will likely require algorithmic breakthroughs, not just engineering.
+
+## Raw Sources
+
+| File | What it contains |
+|------|-----------------|
+| [[raw/parameter-golf/roadmap\|roadmap.md]] | 6-phase submission plan with per-day timeline, April 30 deadline |
+| [[raw/parameter-golf/knowledge-required\|knowledge-required.md]] | 9 knowledge domains: transformers, quantization, Muon, DDP, TTT, compression |
+| [[raw/parameter-golf/techniques-analysis\|techniques-analysis.md]] | Every technique from all 22+ leaderboard submissions with BPB impact |
+| [[raw/parameter-golf/winning-techniques\|winning-techniques.md]] | Tier analysis, what to try next, negative results to skip |
 
 ## Related pages
 
