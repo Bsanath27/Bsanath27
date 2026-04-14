@@ -2,7 +2,7 @@
 
 **Summary**: Master index of all pages in this wiki. Updated as new pages are created.
 
-**Last updated**: 2026-04-14
+**Last updated**: 2026-04-14 (2nd pass)
 
 ---
 
@@ -30,6 +30,7 @@ This wiki follows [Andrej Karpathy's LLM pattern](https://github.com/karpathy/LL
 
 ### Topics
 - [[parameter-golf]] — OpenAI's 16MB LM challenge: quantization, architecture, compression techniques
+- [[ai-safety-frameworks]] — FLI Index, DeepMind FSF, ISO 42001, Anthropic RSP: capability thresholds and safety standards
 
 ### Projects & Tracking
 - [[projects/current.md]] — Active projects and shipping status

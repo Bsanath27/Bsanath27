@@ -26,14 +26,20 @@
 
 | Raw file | Wiki pages |
 |----------|-----------|
-| raw/ai-safety-frameworks/ | (not yet ingested — pending) |
+| [[raw/ai-safety-frameworks/README\|ai-safety-frameworks/README.md]] | [[ai-safety-frameworks]] |
 
 ## other/
 
 | Raw file | Wiki pages |
 |----------|-----------|
-| [[raw/SKYRIk\|SKYRIk.md]] | (not yet ingested — Skyrik project notes) |
-| [[raw/rizerve-ai\|rizerve-ai.md]] | (not yet ingested — Rizerve AI notes) |
+| [[raw/SKYRIk\|SKYRIk.md]] | summarized only — Skyrik app screen specs (project artifact) |
+| [[raw/rizerve-ai\|rizerve-ai.md]] | summarized only — Rizerve AI dev ticket log (project artifact) |
+
+## processed/
+
+| Raw file | Status |
+|----------|--------|
+| raw/.processed/enripe-research-urls.md | Ingested → [[mango-research-index]], [[mango-research-technical]], [[mango-research-market]] |
 
 ---
 
