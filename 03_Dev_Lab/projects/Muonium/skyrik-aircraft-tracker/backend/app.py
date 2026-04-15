@@ -1,0 +1,55 @@
+from flask import Flask
+from flask_cors import CORS
+from flask_socketio import SocketIO, emit
+import threading
+import time
+from config import Config
+from routes import api
+from models import AircraftModel
+
+app = Flask(__name__)
+app.config.from_object(Config)
+CORS(app, resources={r"/api/*": {"origins": Config.CORS_ORIGINS}})
+socketio = SocketIO(app, cors_allowed_origins=Config.CORS_ORIGINS, async_mode='threading')
+
+# Register blueprints
+app.register_blueprint(api)
+
+# Initialize model
+aircraft_model = AircraftModel()
+
+# WebSocket events
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+    emit('response', {'data': 'Connected to server'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
+@socketio.on('request_update')
+def handle_request():
+    """Send live aircraft data on request."""
+    aircraft = aircraft_model.get_all_aircraft()
+    emit('aircraft_update', {'aircraft': aircraft}, broadcast=True)
+
+# Background thread for broadcasting
+def broadcast_thread():
+    """Broadcast aircraft data every N seconds."""
+    while True:
+        try:
+            aircraft = aircraft_model.get_all_aircraft()
+            socketio.emit('aircraft_update', {'aircraft': aircraft}, broadcast=True)
+        except Exception as e:
+            print(f"Broadcast error: {e}")
+
+        time.sleep(Config.POLL_INTERVAL)
+
+if __name__ == '__main__':
+    # Start broadcast thread
+    thread = threading.Thread(target=broadcast_thread, daemon=True)
+    thread.start()
+
+    # Run server
+    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
