@@ -6,31 +6,36 @@ import random
 
 DATABASE_PATH = "data/aircraft.db"
 
-# Sample aircraft data
+# Sample aircraft data - India focused with helicopters
 SAMPLE_AIRCRAFT = [
-    # Commercial Planes
-    {"icao": "A4B205", "callsign": "BA747", "aircraft_type": "Boeing 747", "latitude": 51.5074, "longitude": -0.1278, "altitude": 35000, "speed_knots": 450, "heading": 90},
-    {"icao": "A4B206", "callsign": "AA380", "aircraft_type": "Airbus A380", "latitude": 48.8566, "longitude": 2.3522, "altitude": 38000, "speed_knots": 460, "heading": 180},
-    {"icao": "A4B207", "callsign": "UA777", "aircraft_type": "Boeing 777", "latitude": 40.7128, "longitude": -74.0060, "altitude": 32000, "speed_knots": 480, "heading": 270},
-    {"icao": "A4B208", "callsign": "DL330", "aircraft_type": "Airbus A330", "latitude": 33.9425, "longitude": -118.4081, "altitude": 30000, "speed_knots": 470, "heading": 45},
-    {"icao": "A4B209", "callsign": "UA688", "aircraft_type": "Boeing 787", "latitude": 37.7749, "longitude": -122.4194, "altitude": 36000, "speed_knots": 490, "heading": 135},
+    # Indian Helicopters - Military (Indian Air Force)
+    {"icao": "VT4001", "callsign": "IAF001", "aircraft_type": "HAL Dhruv", "latitude": 28.7041, "longitude": 77.1025, "altitude": 3500, "speed_knots": 110, "heading": 45},
+    {"icao": "VT4002", "callsign": "IAF002", "aircraft_type": "HAL Dhruv", "latitude": 28.6139, "longitude": 77.2090, "altitude": 3000, "speed_knots": 105, "heading": 120},
 
-    # Regional/Smaller Planes
-    {"icao": "A4B210", "callsign": "SKW6587", "aircraft_type": "Bombardier Q400", "latitude": 47.6062, "longitude": -122.3321, "altitude": 18000, "speed_knots": 250, "heading": 225},
-    {"icao": "A4B211", "callsign": "ASA1234", "aircraft_type": "Boeing 737", "latitude": 58.2975, "longitude": -134.4197, "altitude": 25000, "speed_knots": 400, "heading": 315},
+    # Indian Helicopters - Coast Guard & Navy
+    {"icao": "VT5001", "callsign": "ICG-HELI01", "aircraft_type": "Sikorsky S-76", "latitude": 19.0176, "longitude": 72.8479, "altitude": 1200, "speed_knots": 95, "heading": 180},
+    {"icao": "VT5002", "callsign": "INS-MEDIC", "aircraft_type": "Airbus H135", "latitude": 13.1939, "longitude": 80.2815, "altitude": 1500, "speed_knots": 100, "heading": 270},
 
-    # Helicopters
-    {"icao": "A4B212", "callsign": "NYPD1", "aircraft_type": "Bell 407", "latitude": 40.7580, "longitude": -73.9855, "altitude": 1500, "speed_knots": 120, "heading": 0},
-    {"icao": "A4B213", "callsign": "LAA1", "aircraft_type": "Airbus H135", "latitude": 34.0522, "longitude": -118.2437, "altitude": 2000, "speed_knots": 110, "heading": 90},
-    {"icao": "A4B214", "callsign": "CHC1", "aircraft_type": "Sikorsky S-76", "latitude": 34.7465, "longitude": -92.2896, "altitude": 1800, "speed_knots": 100, "heading": 180},
-    {"icao": "A4B215", "callsign": "NEWSCOPTER", "aircraft_type": "Robinson R66", "latitude": 35.0896, "longitude": -106.6055, "altitude": 2500, "speed_knots": 80, "heading": 270},
-    {"icao": "A4B216", "callsign": "MEDIC1", "aircraft_type": "Bell 429", "latitude": 39.7392, "longitude": -104.9903, "altitude": 3000, "speed_knots": 130, "heading": 45},
+    # Indian Helicopters - Medical/Emergency Services
+    {"icao": "VT6001", "callsign": "MEDEVAC-DEL", "aircraft_type": "Bell 407", "latitude": 28.5355, "longitude": 77.1910, "altitude": 1800, "speed_knots": 115, "heading": 90},
+    {"icao": "VT6002", "callsign": "MEDEVAC-BLR", "aircraft_type": "Robinson R66", "latitude": 12.9716, "longitude": 77.5946, "altitude": 1200, "speed_knots": 85, "heading": 45},
+    {"icao": "VT6003", "callsign": "FLYCARE-MUM", "aircraft_type": "Airbus H135", "latitude": 19.0876, "longitude": 72.8691, "altitude": 1400, "speed_knots": 105, "heading": 135},
 
-    # More commercial aircraft
-    {"icao": "A4B217", "callsign": "FDX1234", "aircraft_type": "Boeing 767", "latitude": 42.3601, "longitude": -71.0589, "altitude": 28000, "speed_knots": 420, "heading": 120},
-    {"icao": "A4B218", "callsign": "UPS1234", "aircraft_type": "Airbus A300", "latitude": 33.7490, "longitude": -84.3880, "altitude": 29000, "speed_knots": 430, "heading": 210},
-    {"icao": "A4B219", "callsign": "DAL456", "aircraft_type": "Boeing 757", "latitude": 25.7617, "longitude": -80.1918, "altitude": 31000, "speed_knots": 440, "heading": 300},
-    {"icao": "A4B220", "callsign": "AAL789", "aircraft_type": "Airbus A321", "latitude": 28.4294, "longitude": -81.3089, "altitude": 27000, "speed_knots": 410, "heading": 60},
+    # Indian Helicopters - Police & Law Enforcement
+    {"icao": "VT7001", "callsign": "POLICE-1", "aircraft_type": "Sikorsky S-76", "latitude": 28.6329, "longitude": 77.2197, "altitude": 1600, "speed_knots": 100, "heading": 180},
+    {"icao": "VT7002", "callsign": "POLICE-MUM", "aircraft_type": "Bell 407", "latitude": 19.0760, "longitude": 72.8777, "altitude": 1400, "speed_knots": 110, "heading": 225},
+
+    # Indian Helicopters - Commercial Operators (Pawan Hans, Helicopter Air Taxi)
+    {"icao": "VT8001", "callsign": "PH-001", "aircraft_type": "HAL Dhruv", "latitude": 22.5726, "longitude": 88.3639, "altitude": 2000, "speed_knots": 100, "heading": 0},
+    {"icao": "VT8002", "callsign": "PUSHPAK-1", "aircraft_type": "Robinson R66", "latitude": 17.3850, "longitude": 78.4867, "altitude": 1300, "speed_knots": 80, "heading": 90},
+
+    # Indian Helicopters - News & Media
+    {"icao": "VT9001", "callsign": "NEWS-HELI-DEL", "aircraft_type": "Robinson R66", "latitude": 28.7041, "longitude": 77.0573, "altitude": 2200, "speed_knots": 95, "heading": 270},
+    {"icao": "VT9002", "callsign": "NEWS-HELI-BLR", "aircraft_type": "Bell 407", "latitude": 13.1939, "longitude": 77.6245, "altitude": 1800, "speed_knots": 105, "heading": 315},
+
+    # International Commercial Aircraft in India (for context)
+    {"icao": "A4B205", "callsign": "AI101", "aircraft_type": "Boeing 787", "latitude": 28.5721, "longitude": 77.1200, "altitude": 35000, "speed_knots": 450, "heading": 90},
+    {"icao": "A4B206", "callsign": "SG123", "aircraft_type": "Airbus A380", "latitude": 19.0880, "longitude": 72.8678, "altitude": 38000, "speed_knots": 460, "heading": 180},
 ]
 
 def seed_database():
