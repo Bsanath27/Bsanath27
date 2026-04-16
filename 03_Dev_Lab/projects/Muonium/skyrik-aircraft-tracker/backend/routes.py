@@ -44,3 +44,8 @@ def get_stats():
     """Get statistics."""
     stats = aircraft_model.get_statistics()
     return jsonify(stats)
+
+@api.route('/health', methods=['GET'])
+def health():
+    """Health check."""
+    return jsonify({"status": "ok"})

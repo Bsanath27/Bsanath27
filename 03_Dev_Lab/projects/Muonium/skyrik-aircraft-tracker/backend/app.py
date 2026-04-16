@@ -40,7 +40,7 @@ def broadcast_thread():
     while True:
         try:
             aircraft = aircraft_model.get_all_aircraft()
-            socketio.emit('aircraft_update', {'aircraft': aircraft}, broadcast=True)
+            socketio.emit('aircraft_update', {'aircraft': aircraft}, broadcast=True, namespace='/')
         except Exception as e:
             print(f"Broadcast error: {e}")
 
@@ -52,4 +52,4 @@ if __name__ == '__main__':
     thread.start()
 
     # Run server
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    socketio.run(app, debug=True, host='127.0.0.1', port=5000, allow_unsafe_werkzeug=True)
