@@ -9,8 +9,18 @@ from models import AircraftModel
 
 app = Flask(__name__)
 app.config.from_object(Config)
-CORS(app, resources={r"/api/*": {"origins": Config.CORS_ORIGINS}})
-socketio = SocketIO(app, cors_allowed_origins=Config.CORS_ORIGINS, async_mode='threading')
+
+# Enable CORS for all routes
+CORS(app,
+     resources={r"/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]}},
+     supports_credentials=True,
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+
+socketio = SocketIO(app,
+                   cors_allowed_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"],
+                   async_mode='threading',
+                   ping_timeout=60,
+                   ping_interval=25)
 
 # Register blueprints
 app.register_blueprint(api)
