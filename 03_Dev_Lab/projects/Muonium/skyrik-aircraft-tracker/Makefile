@@ -105,8 +105,13 @@ lint:
 	python3 -m py_compile backend/app.py backend/config.py backend/models.py backend/routes.py
 	@echo "No syntax errors found ✓"
 
-# Quick start for development
-quick-start: install dev
+# Seed database with sample aircraft data
+seed:
+	@echo "Seeding database with sample aircraft..."
+	python3 seed_data.py
+
+# Quick start for development (with sample data)
+quick-start: install seed dev
 	@echo ""
 	@echo "=========================================="
 	@echo "Skyrik Aircraft Tracker is starting..."
