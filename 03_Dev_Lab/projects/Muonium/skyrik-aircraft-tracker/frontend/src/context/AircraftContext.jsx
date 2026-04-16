@@ -12,7 +12,8 @@ export function AircraftProvider({ children }) {
     dataRetention: 7,
     mapStyle: 'osm',
     markerSize: 30,
-    autoRefresh: true
+    autoRefresh: true,
+    showTrails: true
   });
 
   useEffect(() => {

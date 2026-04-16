@@ -76,6 +76,17 @@ export default function Settings() {
           </label>
         </div>
 
+        <div>
+          <label className="flex items-center gap-2 text-gray-400">
+            <input
+              type="checkbox"
+              checked={settings.showTrails !== false}
+              onChange={(e) => handleChange('showTrails', e.target.checked)}
+            />
+            Show flight trails
+          </label>
+        </div>
+
         <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold">
           Save Settings
         </button>
