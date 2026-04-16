@@ -3,7 +3,8 @@ from pathlib import Path
 
 class Config:
     # Database
-    DATABASE_PATH = os.getenv("DATABASE_PATH", "../data/aircraft.db")
+    PROJECT_ROOT = Path(__file__).parent.parent
+    DATABASE_PATH = os.getenv("DATABASE_PATH", str(PROJECT_ROOT / "data" / "aircraft.db"))
 
     # Flask
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
