@@ -6,6 +6,7 @@ import time
 from config import Config
 from routes import api
 from models import AircraftModel
+from adsb_fetcher import ADSBFetcher
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -53,6 +54,21 @@ def handle_request():
     aircraft = aircraft_model.get_all_aircraft()
     emit('aircraft_update', {'aircraft': aircraft}, broadcast=True)
 
+# Background thread for live ADS-B data fetching
+def live_tracking_thread():
+    """Fetch real aircraft data from OpenSky Network"""
+    print("Live ADS-B tracking thread started")
+    fetcher = ADSBFetcher()
+
+    while True:
+        try:
+            fetcher.sync_live_data()
+            print("✓ Live data synced")
+        except Exception as e:
+            print(f"⚠ Live tracking error: {e}")
+
+        time.sleep(60)  # Sync every 60 seconds
+
 # Background thread for broadcasting
 def broadcast_thread():
     """Broadcast aircraft data every N seconds."""
@@ -70,9 +86,16 @@ def broadcast_thread():
         time.sleep(Config.POLL_INTERVAL)
 
 if __name__ == '__main__':
+    # Start live tracking thread (optional - comment out if API unavailable)
+    try:
+        live_thread = threading.Thread(target=live_tracking_thread, daemon=True)
+        live_thread.start()
+    except Exception as e:
+        print(f"Warning: Could not start live tracking: {e}")
+
     # Start broadcast thread
-    thread = threading.Thread(target=broadcast_thread, daemon=True)
-    thread.start()
+    broadcast_thread_obj = threading.Thread(target=broadcast_thread, daemon=True)
+    broadcast_thread_obj.start()
 
     # Run server
     socketio.run(app, debug=True, host='127.0.0.1', port=5000, allow_unsafe_werkzeug=True)
