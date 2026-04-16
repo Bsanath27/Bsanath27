@@ -10,14 +10,23 @@ from models import AircraftModel
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Enable CORS for all routes
+# Enable CORS for all routes - allow both localhost and 127.0.0.1
+cors_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "*"  # Allow all origins in development
+]
+
 CORS(app,
-     resources={r"/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]}},
-     supports_credentials=True,
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+     resources={r"/*": {"origins": cors_origins}},
+     supports_credentials=False,
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization"])
 
 socketio = SocketIO(app,
-                   cors_allowed_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"],
+                   cors_allowed_origins=cors_origins,
                    async_mode='threading',
                    ping_timeout=60,
                    ping_interval=25)
