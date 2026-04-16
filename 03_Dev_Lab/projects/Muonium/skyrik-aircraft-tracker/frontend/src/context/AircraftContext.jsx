@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { initializeSocket, closeSocket } from '../services/api';
+import { initializeSocket, closeSocket, fetchAircraft } from '../services/api';
 
 const AircraftContext = createContext();
 
@@ -22,13 +22,29 @@ export function AircraftProvider({ children }) {
       setSettings(JSON.parse(saved));
     }
 
-    // Initialize WebSocket
+    // Fetch initial aircraft data
+    const loadInitialData = async () => {
+      setLoading(true);
+      const data = await fetchAircraft(100);
+      setAircraft(data);
+      setLoading(false);
+    };
+    loadInitialData();
+
+    // Initialize WebSocket for live updates
     const socket = initializeSocket((newAircraft) => {
       setAircraft(newAircraft);
     });
 
+    // Set up polling interval for periodic updates
+    const pollInterval = setInterval(async () => {
+      const data = await fetchAircraft(100);
+      setAircraft(data);
+    }, 10000); // Poll every 10 seconds
+
     return () => {
       closeSocket();
+      clearInterval(pollInterval);
     };
   }, []);
 

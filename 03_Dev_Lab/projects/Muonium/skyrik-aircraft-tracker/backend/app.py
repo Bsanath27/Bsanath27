@@ -37,10 +37,14 @@ def handle_request():
 # Background thread for broadcasting
 def broadcast_thread():
     """Broadcast aircraft data every N seconds."""
+    print(f"Broadcast thread started. Broadcasting every {Config.POLL_INTERVAL}s")
     while True:
         try:
-            aircraft = aircraft_model.get_all_aircraft()
-            socketio.emit('aircraft_update', {'aircraft': aircraft}, broadcast=True, namespace='/')
+            with app.app_context():
+                aircraft = aircraft_model.get_all_aircraft()
+                if aircraft:
+                    socketio.emit('aircraft_update', {'aircraft': aircraft}, broadcast=True, skip_sid=None)
+                    print(f"Broadcast: {len(aircraft)} aircraft to all clients")
         except Exception as e:
             print(f"Broadcast error: {e}")
 
