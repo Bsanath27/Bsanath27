@@ -1,7 +1,7 @@
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://127.0.0.1:5000/api';
 let socket = null;
 
 // REST API calls
@@ -53,7 +53,7 @@ export const fetchStatistics = async () => {
 
 // WebSocket connection
 export const initializeSocket = (onAircraftUpdate) => {
-  socket = io('http://localhost:5000', {
+  socket = io('http://127.0.0.1:5000', {
     reconnection: true,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
