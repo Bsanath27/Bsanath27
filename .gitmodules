@@ -16,3 +16,9 @@
 [submodule "scene-recreator/tickets/mt/muontickets"]
 	path = scene-recreator/tickets/mt/muontickets
 	url = https://github.com/muonium-ai/muontickets.git
+[submodule "muontickets"]
+	path = muontickets
+	url = https://github.com/muonium-ai/muontickets.git
+[submodule "03_Dev_Lab/projects/Personal/kaduveti/muontickets"]
+	path = 03_Dev_Lab/projects/Personal/kaduveti/muontickets
+	url = https://github.com/muonium-ai/muontickets.git
